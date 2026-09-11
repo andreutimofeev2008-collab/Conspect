@@ -12,7 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.3.2"
+    "astro": "^7.3.2",
+    "marked": "^18.0.12"
   },
   "allowScripts": {
     "esbuild": true

@@ -65,7 +65,18 @@ const przedmioty = [
         </p>
 
         <p>
-          <label for="tresc">Treść notatki</label><br />
+          <label for="tresc">Treść notatki</label>
+        </p>
+        
+        <p>
+          <button id="przycisk-pogrubienie" type="button">Pogrubienie</button>
+          <button id="przycisk-kursywa" type="button">Kursywa</button>
+          <button id="przycisk-naglowek" type="button">Nagłówek</button>
+          <button id="przycisk-lista" type="button">Lista</button>
+          <button id="przycisk-tabela" type="button">Tabela</button>
+        </p>
+        
+        <p>
           <textarea
             id="tresc"
             name="tresc"
@@ -119,6 +130,8 @@ const przedmioty = [
     </main>
 
     <script>
+	  import { marked } from 'marked';	
+    
       const formularz = document.querySelector('#formularz-notatki');
       const przyciskPodgladu = document.querySelector('#przycisk-podgladu');
       const podglad = document.querySelector('#podglad');
@@ -127,6 +140,62 @@ const przedmioty = [
       const temat = document.querySelector('#temat');
       const data = document.querySelector('#data');
       const tresc = document.querySelector('#tresc');
+      const przyciskPogrubienie = document.querySelector('#przycisk-pogrubienie');
+      const przyciskKursywa = document.querySelector('#przycisk-kursywa');
+      const przyciskNaglowek = document.querySelector('#przycisk-naglowek');
+      const przyciskLista = document.querySelector('#przycisk-lista');
+      const przyciskTabela = document.querySelector('#przycisk-tabela');
+      function wstawFormatowanie(poczatek, koniec = '') {
+        const start = tresc.selectionStart;
+        const end = tresc.selectionEnd;
+        const zaznaczonyTekst = tresc.value.slice(start, end);
+      
+        tresc.value =
+          tresc.value.slice(0, start) +
+          poczatek +
+          zaznaczonyTekst +
+          koniec +
+          tresc.value.slice(end);
+      
+        tresc.focus();
+      
+        tresc.selectionStart = start + poczatek.length;
+        tresc.selectionEnd = end + poczatek.length;
+      }
+      
+      przyciskPogrubienie.addEventListener('click', () => {
+        wstawFormatowanie('**', '**');
+      });
+      
+      przyciskKursywa.addEventListener('click', () => {
+        wstawFormatowanie('*', '*');
+      });
+      
+      przyciskNaglowek.addEventListener('click', () => {
+        wstawFormatowanie('## ', '');
+      });
+      
+      przyciskLista.addEventListener('click', () => {
+        wstawFormatowanie('- ', '');
+      });
+
+      przyciskTabela.addEventListener('click', () => {
+        const tabela = `| Kolumna 1 | Kolumna 2 |
+      | --- | --- |
+      | Wartość 1 | Wartość 2 |
+      | Wartość 3 | Wartość 4 |`;
+      
+        const start = tresc.selectionStart;
+        const koniec = tresc.selectionEnd;
+      
+        tresc.value =
+          tresc.value.slice(0, start) +
+          tabela +
+          tresc.value.slice(koniec);
+      
+        tresc.focus();
+      });
+      
       const dzisiaj = new Date().toISOString().split('T')[0];
       data.value = dzisiaj;
 
@@ -150,7 +219,7 @@ const przedmioty = [
         podgladTemat.textContent = temat.value;
         podgladData.textContent = data.value;
       
-        podgladTresc.textContent = tresc.value;
+        podgladTresc.innerHTML = marked.parse(tresc.value);
       
         podglad.hidden = false;
       });

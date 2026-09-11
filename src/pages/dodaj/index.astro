@@ -21,6 +21,10 @@ const przedmioty = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Dodaj notatkę — Notatki</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
+    />
   </head>
 
   <body>
@@ -130,7 +134,8 @@ const przedmioty = [
     </main>
 
     <script>
-	  import { marked } from 'marked';	
+	  import { marked } from 'marked';
+	  import katex from 'katex';	
     
       const formularz = document.querySelector('#formularz-notatki');
       const przyciskPodgladu = document.querySelector('#przycisk-podgladu');
@@ -219,7 +224,19 @@ const przedmioty = [
         podgladTemat.textContent = temat.value;
         podgladData.textContent = data.value;
       
-        podgladTresc.innerHTML = marked.parse(tresc.value);
+        let trescSformatowana = marked.parse(tresc.value);
+        
+        trescSformatowana = trescSformatowana.replace(
+          /\$\$([\s\S]*?)\$\$/g,
+          (_dopasowanie, formula) => {
+            return katex.renderToString(formula.trim(), {
+              displayMode: true,
+              throwOnError: false,
+            });
+          }
+        );
+        
+        podgladTresc.innerHTML = trescSformatowana;
       
         podglad.hidden = false;
       });

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "astro": "^7.3.2",
+    "katex": "^0.18.7",
     "marked": "^18.0.12"
   },
   "allowScripts": {

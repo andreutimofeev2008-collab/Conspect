@@ -1,11 +1,47 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const przedmioty = [
+  'Pracownia urządzeń sieciowych',
+  'Pracownia urządzeń techniki komputerowej',
+  'Projektowanie i administrowanie bazami danych',
+  'Język angielski',
+  'Matematyka',
+  'Fizyka',
+  'Język niemiecki',
+  'Edukacja obywatelska',
+  'Geografia',
+  'Programowanie i obsługa drukarek 3D',
+  'Język polski',
+  'Chemia',
+  'Historia',
+];
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Notatki</title>
+  </head>
+
+  <body>
+    <main>
+      <h1>📚 Notatki</h1>
+
+      <p>
+        Internetowa biblioteka notatek szkolnych.
+      </p>
+
+      <h2>Przedmioty</h2>
+
+      <ul>
+        {przedmioty.map((przedmiot) => (
+          <li>{przedmiot}</li>
+        ))}
+      </ul>
+
+      <h2>Ostatnie notatki</h2>
+
+      <p>Na razie nie ma tutaj żadnych notatek.</p>
+    </main>
+  </body>
+</html>

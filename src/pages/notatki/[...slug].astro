@@ -1,0 +1,37 @@
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const notatki = await getCollection('notatki');
+
+  return notatki.map((notatka) => ({
+    params: { slug: notatka.id },
+    props: { notatka },
+  }));
+}
+
+const { notatka } = Astro.props;
+const { Content } = await render(notatka);
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{notatka.data.tytul} — Notatki</title>
+  </head>
+
+  <body>
+    <main>
+      <p>
+        <a href="/Conspect/przedmioty/matematyka/">
+          ← Powrót do Matematyka
+        </a>
+      </p>
+
+      <h1>{notatka.data.tytul}</h1>
+
+      <Content />
+    </main>
+  </body>
+</html>

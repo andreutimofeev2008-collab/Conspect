@@ -1,4 +1,6 @@
 ---
+import { getCollection } from 'astro:content';
+
 export function getStaticPaths() {
   const przedmioty = {
     'pracownia-urzadzen-sieciowych': 'Pracownia urządzeń sieciowych',
@@ -23,6 +25,11 @@ export function getStaticPaths() {
 }
 
 const { nazwa } = Astro.props;
+const notatki = await getCollection('notatki');
+
+const notatkiPrzedmiotu = notatki.filter(
+  (notatka) => notatka.data.przedmiot === nazwa
+);
 ---
 
 <html lang="pl">
@@ -40,7 +47,21 @@ const { nazwa } = Astro.props;
 
       <h1>{nazwa}</h1>
 
-      <p>Notatki z tego przedmiotu pojawią się tutaj.</p>
+      <h2>Notatki</h2>
+
+      {notatkiPrzedmiotu.length > 0 ? (
+        <ul>
+          {notatkiPrzedmiotu.map((notatka) => (
+            <li>
+              <a href={`/Conspect/notatki/${notatka.id}/`}>
+                {notatka.data.tytul}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Na razie nie ma tutaj żadnych notatek.</p>
+      )}
     </main>
   </body>
 </html>

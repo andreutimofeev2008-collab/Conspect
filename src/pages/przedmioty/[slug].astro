@@ -1,0 +1,46 @@
+---
+export function getStaticPaths() {
+  const przedmioty = {
+    'pracownia-urzadzen-sieciowych': 'Pracownia urządzeń sieciowych',
+    'pracownia-urzadzen-techniki-komputerowej': 'Pracownia urządzeń techniki komputerowej',
+    'projektowanie-i-administrowanie-bazami-danych': 'Projektowanie i administrowanie bazami danych',
+    'jezyk-angielski': 'Język angielski',
+    'matematyka': 'Matematyka',
+    'fizyka': 'Fizyka',
+    'jezyk-niemiecki': 'Język niemiecki',
+    'edukacja-obywatelska': 'Edukacja obywatelska',
+    'geografia': 'Geografia',
+    'programowanie-i-obsluga-drukarek-3d': 'Programowanie i obsługa drukarek 3D',
+    'jezyk-polski': 'Język polski',
+    'chemia': 'Chemia',
+    'historia': 'Historia',
+  };
+
+  return Object.entries(przedmioty).map(([slug, nazwa]) => ({
+    params: { slug },
+    props: { nazwa },
+  }));
+}
+
+const { nazwa } = Astro.props;
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{nazwa} — Notatki</title>
+  </head>
+
+  <body>
+    <main>
+      <p>
+        <a href="/Conspect/">← Powrót do strony głównej</a>
+      </p>
+
+      <h1>{nazwa}</h1>
+
+      <p>Notatki z tego przedmiotu pojawią się tutaj.</p>
+    </main>
+  </body>
+</html>

@@ -1,18 +1,57 @@
 ---
 const przedmioty = [
-  'Pracownia urządzeń sieciowych',
-  'Pracownia urządzeń techniki komputerowej',
-  'Projektowanie i administrowanie bazami danych',
-  'Język angielski',
-  'Matematyka',
-  'Fizyka',
-  'Język niemiecki',
-  'Edukacja obywatelska',
-  'Geografia',
-  'Programowanie i obsługa drukarek 3D',
-  'Język polski',
-  'Chemia',
-  'Historia',
+  {
+    slug: 'pracownia-urzadzen-sieciowych',
+    nazwa: 'Pracownia urządzeń sieciowych',
+  },
+  {
+    slug: 'pracownia-urzadzen-techniki-komputerowej',
+    nazwa: 'Pracownia urządzeń techniki komputerowej',
+  },
+  {
+    slug: 'projektowanie-i-administrowanie-bazami-danych',
+    nazwa: 'Projektowanie i administrowanie bazami danych',
+  },
+  {
+    slug: 'jezyk-angielski',
+    nazwa: 'Język angielski',
+  },
+  {
+    slug: 'matematyka',
+    nazwa: 'Matematyka',
+  },
+  {
+    slug: 'fizyka',
+    nazwa: 'Fizyka',
+  },
+  {
+    slug: 'jezyk-niemiecki',
+    nazwa: 'Język niemiecki',
+  },
+  {
+    slug: 'edukacja-obywatelska',
+    nazwa: 'Edukacja obywatelska',
+  },
+  {
+    slug: 'geografia',
+    nazwa: 'Geografia',
+  },
+  {
+    slug: 'programowanie-i-obsluga-drukarek-3d',
+    nazwa: 'Programowanie i obsługa drukarek 3D',
+  },
+  {
+    slug: 'jezyk-polski',
+    nazwa: 'Język polski',
+  },
+  {
+    slug: 'chemia',
+    nazwa: 'Chemia',
+  },
+  {
+    slug: 'historia',
+    nazwa: 'Historia',
+  },
 ];
 ---
 
@@ -35,7 +74,11 @@ const przedmioty = [
 
       <ul>
         {przedmioty.map((przedmiot) => (
-          <li>{przedmiot}</li>
+          <li>
+            <a href={`/Conspect/przedmioty/${przedmiot.slug}/`}>
+              {przedmiot.nazwa}
+            </a>
+          </li>
         ))}
       </ul>
 

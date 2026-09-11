@@ -1,6 +1,8 @@
 ---
 tytul: Pole prostokątne
 przedmiot: Matematyka
+temat: Geometria
+data: 2026-09-11
 ---
 
 # Pole prostokątne

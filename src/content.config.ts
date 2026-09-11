@@ -9,6 +9,8 @@ const notatki = defineCollection({
   schema: z.object({
     tytul: z.string(),
     przedmiot: z.string(),
+    temat: z.string(),
+    data: z.coerce.date(),
   }),
 });
 

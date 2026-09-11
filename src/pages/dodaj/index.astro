@@ -1,0 +1,165 @@
+---
+const przedmioty = [
+  'Pracownia urządzeń sieciowych',
+  'Pracownia urządzeń techniki komputerowej',
+  'Projektowanie i administrowanie bazami danych',
+  'Język angielski',
+  'Matematyka',
+  'Fizyka',
+  'Język niemiecki',
+  'Edukacja obywatelska',
+  'Geografia',
+  'Programowanie i obsługa drukarek 3D',
+  'Język polski',
+  'Chemia',
+  'Historia',
+];
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Dodaj notatkę — Notatki</title>
+  </head>
+
+  <body>
+    <main>
+      <p>
+        <a href="/Conspect/">← Powrót do strony głównej</a>
+      </p>
+
+      <h1>Dodaj notatkę</h1>
+
+      <form id="formularz-notatki">
+        <p>
+          <label for="przedmiot">Przedmiot</label><br />
+          <select id="przedmiot" name="przedmiot" required>
+            <option value="">Wybierz przedmiot</option>
+
+            {przedmioty.map((przedmiot) => (
+              <option value={przedmiot}>{przedmiot}</option>
+            ))}
+          </select>
+        </p>
+
+        <p>
+          <label for="temat">Temat</label><br />
+          <input
+            id="temat"
+            name="temat"
+            type="text"
+            placeholder="Np. Pole prostokątne"
+            required
+          />
+        </p>
+
+        <p>
+          <label for="data">Data</label><br />
+          <input
+            id="data"
+            name="data"
+            type="date"
+            required
+          />
+        </p>
+
+        <p>
+          <label for="tresc">Treść notatki</label><br />
+          <textarea
+            id="tresc"
+            name="tresc"
+            rows="20"
+            placeholder="Wpisz treść notatki..."
+            required
+          ></textarea>
+        </p>
+
+        <p>
+          <label for="obraz">Obraz lub skan</label><br />
+          <input
+            id="obraz"
+            name="obraz"
+            type="file"
+            accept="image/*"
+          />
+        </p>
+
+        <p>
+          <button id="przycisk-podgladu" type="button">Podgląd</button>
+          <button id="przycisk-wyczysc" type="reset">Wyczyść formularz</button>
+          <button type="submit">Opublikuj notatkę</button>
+        </p>
+      </form>
+
+      <section id="podglad" hidden>
+        <hr />
+
+        <h2>Podgląd notatki</h2>
+
+        <p>
+          <strong>Przedmiot:</strong>
+          <span id="podglad-przedmiot"></span>
+        </p>
+
+        <p>
+          <strong>Temat:</strong>
+          <span id="podglad-temat"></span>
+        </p>
+
+        <p>
+          <strong>Data:</strong>
+          <span id="podglad-data"></span>
+        </p>
+
+        <h3>Treść</h3>
+
+        <div id="podglad-tresc"></div>
+      </section>
+    </main>
+
+    <script>
+      const formularz = document.querySelector('#formularz-notatki');
+      const przyciskPodgladu = document.querySelector('#przycisk-podgladu');
+      const podglad = document.querySelector('#podglad');
+
+      const przedmiot = document.querySelector('#przedmiot');
+      const temat = document.querySelector('#temat');
+      const data = document.querySelector('#data');
+      const tresc = document.querySelector('#tresc');
+      const dzisiaj = new Date().toISOString().split('T')[0];
+      data.value = dzisiaj;
+
+      const podgladPrzedmiot = document.querySelector('#podglad-przedmiot');
+      const podgladTemat = document.querySelector('#podglad-temat');
+      const podgladData = document.querySelector('#podglad-data');
+      const podgladTresc = document.querySelector('#podglad-tresc');
+
+      przyciskPodgladu.addEventListener('click', () => {
+        if (!podglad.hidden) {
+          podglad.hidden = true;
+          return;
+        }
+      
+        if (!formularz.checkValidity()) {
+          formularz.reportValidity();
+          return;
+        }
+      
+        podgladPrzedmiot.textContent = przedmiot.value;
+        podgladTemat.textContent = temat.value;
+        podgladData.textContent = data.value;
+      
+        podgladTresc.textContent = tresc.value;
+      
+        podglad.hidden = false;
+      });
+
+      formularz.addEventListener('submit', (zdarzenie) => {
+        zdarzenie.preventDefault();
+
+        alert('Publikowanie notatek zostanie dodane w następnym kroku.');
+      });
+    </script>
+  </body>
+</html>

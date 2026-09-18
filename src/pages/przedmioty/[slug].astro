@@ -1,21 +1,24 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection } from "astro:content";
 
 export function getStaticPaths() {
   const przedmioty = {
-    'pracownia-urzadzen-sieciowych': 'Pracownia urządzeń sieciowych',
-    'pracownia-urzadzen-techniki-komputerowej': 'Pracownia urządzeń techniki komputerowej',
-    'projektowanie-i-administrowanie-bazami-danych': 'Projektowanie i administrowanie bazami danych',
-    'jezyk-angielski': 'Język angielski',
-    'matematyka': 'Matematyka',
-    'fizyka': 'Fizyka',
-    'jezyk-niemiecki': 'Język niemiecki',
-    'edukacja-obywatelska': 'Edukacja obywatelska',
-    'geografia': 'Geografia',
-    'programowanie-i-obsluga-drukarek-3d': 'Programowanie i obsługa drukarek 3D',
-    'jezyk-polski': 'Język polski',
-    'chemia': 'Chemia',
-    'historia': 'Historia',
+    "pracownia-urzadzen-sieciowych": "Pracownia urządzeń sieciowych",
+    "pracownia-urzadzen-techniki-komputerowej":
+      "Pracownia urządzeń techniki komputerowej",
+    "projektowanie-i-administrowanie-bazami-danych":
+      "Projektowanie i administrowanie bazami danych",
+    "jezyk-angielski": "Język angielski",
+    matematyka: "Matematyka",
+    fizyka: "Fizyka",
+    "jezyk-niemiecki": "Język niemiecki",
+    "edukacja-obywatelska": "Edukacja obywatelska",
+    geografia: "Geografia",
+    "programowanie-i-obsluga-drukarek-3d":
+      "Programowanie i obsługa drukarek 3D",
+    "jezyk-polski": "Język polski",
+    chemia: "Chemia",
+    historia: "Historia",
   };
 
   return Object.entries(przedmioty).map(([slug, nazwa]) => ({
@@ -25,10 +28,10 @@ export function getStaticPaths() {
 }
 
 const { nazwa } = Astro.props;
-const notatki = await getCollection('notatki');
+const notatki = await getCollection("notatki");
 
 const notatkiPrzedmiotu = notatki.filter(
-  (notatka) => notatka.data.przedmiot === nazwa
+  (notatka) => notatka.data.przedmiot === nazwa,
 );
 ---
 

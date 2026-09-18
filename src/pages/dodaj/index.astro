@@ -1,18 +1,18 @@
 ---
 const przedmioty = [
-  'Pracownia urządzeń sieciowych',
-  'Pracownia urządzeń techniki komputerowej',
-  'Projektowanie i administrowanie bazami danych',
-  'Język angielski',
-  'Matematyka',
-  'Fizyka',
-  'Język niemiecki',
-  'Edukacja obywatelska',
-  'Geografia',
-  'Programowanie i obsługa drukarek 3D',
-  'Język polski',
-  'Chemia',
-  'Historia',
+  "Pracownia urządzeń sieciowych",
+  "Pracownia urządzeń techniki komputerowej",
+  "Projektowanie i administrowanie bazami danych",
+  "Język angielski",
+  "Matematyka",
+  "Fizyka",
+  "Język niemiecki",
+  "Edukacja obywatelska",
+  "Geografia",
+  "Programowanie i obsługa drukarek 3D",
+  "Język polski",
+  "Chemia",
+  "Historia",
 ];
 ---
 
@@ -21,6 +21,7 @@ const przedmioty = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Dodaj notatkę — Notatki</title>
+
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
@@ -37,7 +38,9 @@ const przedmioty = [
 
       <form id="formularz-notatki">
         <p>
-          <label for="przedmiot">Przedmiot</label><br />
+          <label for="przedmiot">Przedmiot</label>
+          <br />
+
           <select id="przedmiot" name="przedmiot" required>
             <option value="">Wybierz przedmiot</option>
 
@@ -48,7 +51,9 @@ const przedmioty = [
         </p>
 
         <p>
-          <label for="temat">Temat</label><br />
+          <label for="temat">Temat</label>
+          <br />
+
           <input
             id="temat"
             name="temat"
@@ -59,27 +64,38 @@ const przedmioty = [
         </p>
 
         <p>
-          <label for="data">Data</label><br />
-          <input
-            id="data"
-            name="data"
-            type="date"
-            required
-          />
+          <label for="data">Data</label>
+          <br />
+
+          <input id="data" name="data" type="date" required />
         </p>
 
         <p>
           <label for="tresc">Treść notatki</label>
         </p>
-        
+
         <p>
-          <button id="przycisk-pogrubienie" type="button">Pogrubienie</button>
-          <button id="przycisk-kursywa" type="button">Kursywa</button>
-          <button id="przycisk-naglowek" type="button">Nagłówek</button>
-          <button id="przycisk-lista" type="button">Lista</button>
-          <button id="przycisk-tabela" type="button">Tabela</button>
+          <button id="przycisk-pogrubienie" type="button">
+            Pogrubienie
+          </button>
+
+          <button id="przycisk-kursywa" type="button">
+            Kursywa
+          </button>
+
+          <button id="przycisk-naglowek" type="button">
+            Nagłówek
+          </button>
+
+          <button id="przycisk-lista" type="button">
+            Lista
+          </button>
+
+          <button id="przycisk-tabela" type="button">
+            Tabela
+          </button>
         </p>
-        
+
         <p>
           <textarea
             id="tresc"
@@ -91,18 +107,59 @@ const przedmioty = [
         </p>
 
         <p>
-          <label for="obraz">Obraz lub skan</label><br />
-          <input
-            id="obraz"
-            name="obraz"
-            type="file"
-            accept="image/*"
-          />
+          <label for="obraz">Obraz lub skan</label>
+          <br />
+
+          <input id="obraz" name="obraz" type="file" accept="image/*" />
         </p>
 
+        <div id="podglad-obrazu-kontener" hidden>
+          <h3>Podgląd zdjęcia</h3>
+
+          <img id="podglad-obrazu" alt="Podgląd wybranego zdjęcia" />
+
+          <p>
+            <button id="usun-obraz" type="button">
+              Usuń zdjęcie
+            </button>
+          </p>
+
+          <p>
+            <button id="przycisk-ocr" type="button">
+              🔍 Rozpoznaj tekst ze zdjęcia
+            </button>
+          </p>
+
+          <p id="status-ocr" hidden>
+            ⏳ Trwa rozpoznawanie tekstu...
+          </p>
+        </div>
+
+        <div id="wynik-ocr-kontener" hidden>
+          <h3>Wynik rozpoznawania</h3>
+
+          <textarea
+            id="wynik-ocr"
+            rows="10"
+            placeholder="Tutaj pojawi się rozpoznany tekst..."
+          ></textarea>
+
+          <p>
+            <button id="wstaw-tekst-ocr" type="button">
+              ⬇️ Wstaw tekst do notatki
+            </button>
+          </p>
+        </div>
+
         <p>
-          <button id="przycisk-podgladu" type="button">Podgląd</button>
-          <button id="przycisk-wyczysc" type="reset">Wyczyść formularz</button>
+          <button id="przycisk-podgladu" type="button">
+            Podgląd
+          </button>
+
+          <button id="przycisk-wyczysc" type="reset">
+            Wyczyść formularz
+          </button>
+
           <button type="submit">Opublikuj notatkę</button>
         </p>
       </form>
@@ -134,98 +191,274 @@ const przedmioty = [
     </main>
 
     <script>
-	  import { marked } from 'marked';
-	  import katex from 'katex';	
-    
-      const formularz = document.querySelector('#formularz-notatki');
-      const przyciskPodgladu = document.querySelector('#przycisk-podgladu');
-      const podglad = document.querySelector('#podglad');
+      import { marked } from "marked";
+      import katex from "katex";
 
-      const przedmiot = document.querySelector('#przedmiot');
-      const temat = document.querySelector('#temat');
-      const data = document.querySelector('#data');
-      const tresc = document.querySelector('#tresc');
-      const przyciskPogrubienie = document.querySelector('#przycisk-pogrubienie');
-      const przyciskKursywa = document.querySelector('#przycisk-kursywa');
-      const przyciskNaglowek = document.querySelector('#przycisk-naglowek');
-      const przyciskLista = document.querySelector('#przycisk-lista');
-      const przyciskTabela = document.querySelector('#przycisk-tabela');
-      function wstawFormatowanie(poczatek, koniec = '') {
+      const formularz = document.querySelector("#formularz-notatki");
+
+      const przyciskPodgladu = document.querySelector("#przycisk-podgladu");
+
+      const podglad = document.querySelector("#podglad");
+
+      const przedmiot = document.querySelector("#przedmiot");
+
+      const temat = document.querySelector("#temat");
+
+      const data = document.querySelector("#data");
+
+      const tresc = document.querySelector("#tresc");
+
+      const obraz = document.querySelector("#obraz");
+
+      const podgladObrazuKontener = document.querySelector(
+        "#podglad-obrazu-kontener",
+      );
+
+      const podgladObrazu = document.querySelector("#podglad-obrazu");
+
+      const usunObraz = document.querySelector("#usun-obraz");
+
+      const przyciskOcr = document.querySelector("#przycisk-ocr");
+
+      const statusOcr = document.querySelector("#status-ocr");
+
+      const wynikOcrKontener = document.querySelector("#wynik-ocr-kontener");
+
+      const wynikOcr = document.querySelector("#wynik-ocr");
+
+      const wstawTekstOcr = document.querySelector("#wstaw-tekst-ocr");
+
+      const przyciskPogrubienie = document.querySelector(
+        "#przycisk-pogrubienie",
+      );
+
+      const przyciskKursywa = document.querySelector("#przycisk-kursywa");
+
+      const przyciskNaglowek = document.querySelector("#przycisk-naglowek");
+
+      const przyciskLista = document.querySelector("#przycisk-lista");
+
+      const przyciskTabela = document.querySelector("#przycisk-tabela");
+
+      function wstawFormatowanie(poczatek, koniec = "") {
         const start = tresc.selectionStart;
         const end = tresc.selectionEnd;
+
         const zaznaczonyTekst = tresc.value.slice(start, end);
-      
+
         tresc.value =
           tresc.value.slice(0, start) +
           poczatek +
           zaznaczonyTekst +
           koniec +
           tresc.value.slice(end);
-      
+
         tresc.focus();
-      
+
         tresc.selectionStart = start + poczatek.length;
+
         tresc.selectionEnd = end + poczatek.length;
       }
-      
-      przyciskPogrubienie.addEventListener('click', () => {
-        wstawFormatowanie('**', '**');
-      });
-      
-      przyciskKursywa.addEventListener('click', () => {
-        wstawFormatowanie('*', '*');
-      });
-      
-      przyciskNaglowek.addEventListener('click', () => {
-        wstawFormatowanie('## ', '');
-      });
-      
-      przyciskLista.addEventListener('click', () => {
-        wstawFormatowanie('- ', '');
+
+      przyciskPogrubienie.addEventListener("click", () => {
+        wstawFormatowanie("**", "**");
       });
 
-      przyciskTabela.addEventListener('click', () => {
+      przyciskKursywa.addEventListener("click", () => {
+        wstawFormatowanie("*", "*");
+      });
+
+      przyciskNaglowek.addEventListener("click", () => {
+        wstawFormatowanie("## ");
+      });
+
+      przyciskLista.addEventListener("click", () => {
+        wstawFormatowanie("- ");
+      });
+
+      przyciskTabela.addEventListener("click", () => {
         const tabela = `| Kolumna 1 | Kolumna 2 |
-      | --- | --- |
-      | Wartość 1 | Wartość 2 |
-      | Wartość 3 | Wartość 4 |`;
-      
+| --- | --- |
+| Wartość 1 | Wartość 2 |
+| Wartość 3 | Wartość 4 |`;
+
         const start = tresc.selectionStart;
         const koniec = tresc.selectionEnd;
-      
+
         tresc.value =
-          tresc.value.slice(0, start) +
-          tabela +
-          tresc.value.slice(koniec);
-      
+          tresc.value.slice(0, start) + tabela + tresc.value.slice(koniec);
+
         tresc.focus();
       });
-      
-      const dzisiaj = new Date().toISOString().split('T')[0];
+
+      obraz.addEventListener("change", () => {
+        const plik = obraz.files[0];
+
+        if (!plik) {
+          return;
+        }
+
+        const adresObrazu = URL.createObjectURL(plik);
+
+        podgladObrazu.src = adresObrazu;
+
+        podgladObrazuKontener.hidden = false;
+
+        wynikOcrKontener.hidden = true;
+        wynikOcr.value = "";
+      });
+
+      usunObraz.addEventListener("click", () => {
+        obraz.value = "";
+
+        podgladObrazu.src = "";
+
+        podgladObrazuKontener.hidden = true;
+
+        wynikOcrKontener.hidden = true;
+
+        wynikOcr.value = "";
+      });
+
+      /*
+       * OCR
+       *
+       * Obraz jest wysyłany do Cloudflare Worker.
+       * Worker przekazuje go do OCR.space.
+       */
+      przyciskOcr.addEventListener("click", async () => {
+        const plik = obraz.files[0];
+
+        if (!plik) {
+          alert("Najpierw wybierz zdjęcie.");
+          return;
+        }
+
+        statusOcr.hidden = false;
+        statusOcr.textContent = "⏳ Wysyłanie obrazu do rozpoznawania...";
+
+        przyciskOcr.disabled = true;
+
+        wynikOcrKontener.hidden = true;
+        wynikOcr.value = "";
+
+        try {
+          const dane = new FormData();
+
+          dane.append("obraz", plik);
+
+          /*
+           * Wybór języka OCR na podstawie przedmiotu.
+           */
+          let jezyk = "pol";
+
+          if (przedmiot.value === "Język angielski") {
+            jezyk = "eng";
+          }
+
+          if (przedmiot.value === "Język niemiecki") {
+            jezyk = "ger";
+          }
+
+          dane.append("jezyk", jezyk);
+
+          const odpowiedz = await fetch(
+            "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev/",
+            {
+              method: "POST",
+              body: dane,
+            },
+          );
+
+          const wynik = await odpowiedz.json();
+
+          console.log("Odpowiedź OCR:", wynik);
+
+          if (!odpowiedz.ok || wynik.IsErroredOnProcessing) {
+            console.error("Błąd OCR:", wynik);
+
+            throw new Error("OCR nie udało się wykonać.");
+          }
+
+          const tekst =
+            wynik.ParsedResults?.map((element) => element.ParsedText).join(
+              "\n",
+            ) || "";
+
+          if (!tekst.trim()) {
+            throw new Error("OCR nie rozpoznał tekstu.");
+          }
+
+          wynikOcr.value = tekst;
+
+          wynikOcrKontener.hidden = false;
+
+          statusOcr.hidden = true;
+        } catch (blad) {
+          console.error("Błąd OCR:", blad);
+
+          statusOcr.hidden = false;
+
+          statusOcr.textContent = "❌ Nie udało się rozpoznać tekstu.";
+
+          alert("Nie udało się rozpoznać tekstu. Spróbuj ponownie.");
+        } finally {
+          przyciskOcr.disabled = false;
+        }
+      });
+
+      wstawTekstOcr.addEventListener("click", () => {
+        const tekst = wynikOcr.value.trim();
+
+        if (!tekst) {
+          return;
+        }
+
+        const start = tresc.selectionStart;
+
+        const koniec = tresc.selectionEnd;
+
+        tresc.value =
+          tresc.value.slice(0, start) + tekst + tresc.value.slice(koniec);
+
+        tresc.focus();
+
+        tresc.selectionStart = start + tekst.length;
+
+        tresc.selectionEnd = start + tekst.length;
+      });
+
+      const dzisiaj = new Date().toISOString().split("T")[0];
+
       data.value = dzisiaj;
 
-      const podgladPrzedmiot = document.querySelector('#podglad-przedmiot');
-      const podgladTemat = document.querySelector('#podglad-temat');
-      const podgladData = document.querySelector('#podglad-data');
-      const podgladTresc = document.querySelector('#podglad-tresc');
+      const podgladPrzedmiot = document.querySelector("#podglad-przedmiot");
 
-      przyciskPodgladu.addEventListener('click', () => {
+      const podgladTemat = document.querySelector("#podglad-temat");
+
+      const podgladData = document.querySelector("#podglad-data");
+
+      const podgladTresc = document.querySelector("#podglad-tresc");
+
+      przyciskPodgladu.addEventListener("click", () => {
         if (!podglad.hidden) {
           podglad.hidden = true;
           return;
         }
-      
+
         if (!formularz.checkValidity()) {
           formularz.reportValidity();
           return;
         }
-      
+
         podgladPrzedmiot.textContent = przedmiot.value;
+
         podgladTemat.textContent = temat.value;
+
         podgladData.textContent = data.value;
-      
+
         let trescSformatowana = marked.parse(tresc.value);
-        
+
         trescSformatowana = trescSformatowana.replace(
           /\$\$([\s\S]*?)\$\$/g,
           (_dopasowanie, formula) => {
@@ -233,18 +466,74 @@ const przedmioty = [
               displayMode: true,
               throwOnError: false,
             });
-          }
+          },
         );
-        
+
         podgladTresc.innerHTML = trescSformatowana;
-      
+
         podglad.hidden = false;
       });
 
-      formularz.addEventListener('submit', (zdarzenie) => {
+      formularz.addEventListener("submit", (zdarzenie) => {
         zdarzenie.preventDefault();
 
-        alert('Publikowanie notatek zostanie dodane w następnym kroku.');
+        const tytul = document.querySelector("#tytul").value.trim();
+        const przedmiot = document.querySelector("#przedmiot").value;
+        const temat = document.querySelector("#temat").value.trim();
+        const data = document.querySelector("#data").value;
+        const tresc = document.querySelector("#tresc").value.trim();
+
+        if (!tytul || !przedmiot || !temat || !data || !tresc) {
+          alert("Uzupełnij wszystkie pola.");
+          return;
+        }
+
+        const slug = tytul
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+        const markdown = `---
+tytul: ${tytul}
+przedmiot: ${przedmiot}
+temat: ${temat}
+data: ${data}
+---
+
+${tresc}
+`;
+
+        const plik = new Blob([markdown], {
+          type: "text/markdown;charset=utf-8",
+        });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(plik);
+        link.download = `${slug}.md`;
+        link.click();
+
+        URL.revokeObjectURL(link.href);
+
+        alert("Notatka została przygotowana jako plik Markdown.");
+      });
+      formularz.addEventListener("reset", () => {
+        setTimeout(() => {
+          podglad.hidden = true;
+
+          podgladObrazuKontener.hidden = true;
+
+          wynikOcrKontener.hidden = true;
+
+          podgladObrazu.src = "";
+
+          wynikOcr.value = "";
+
+          statusOcr.hidden = true;
+
+          data.value = dzisiaj;
+        }, 0);
       });
     </script>
   </body>

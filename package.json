@@ -9,14 +9,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "format": "prettier --plugin=prettier-plugin-astro --write .",
+    "format:check": "prettier --plugin=prettier-plugin-astro --check ."
   },
   "dependencies": {
     "astro": "^7.3.2",
     "katex": "^0.18.7",
-    "marked": "^18.0.12"
+    "marked": "^18.0.12",
+    "tesseract.js": "^7.0.0"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^1.0.0"
   }
 }

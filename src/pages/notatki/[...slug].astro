@@ -1,8 +1,8 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
-  const notatki = await getCollection('notatki');
+  const notatki = await getCollection("notatki");
 
   return notatki.map((notatka) => ({
     params: { slug: notatka.id },
@@ -24,9 +24,7 @@ const { Content } = await render(notatka);
   <body>
     <main>
       <p>
-        <a href="/Conspect/przedmioty/matematyka/">
-          ← Powrót do Matematyka
-        </a>
+        <a href="/Conspect/przedmioty/matematyka/">← Powrót do Matematyka</a>
       </p>
 
       <h1>{notatka.data.tytul}</h1>

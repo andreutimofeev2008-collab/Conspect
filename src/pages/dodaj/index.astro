@@ -388,7 +388,18 @@ const przedmioty = [
             },
           );
 
-          const wynik = await odpowiedz.json();
+          const tekstOdpowiedzi = await odpowiedz.text();
+
+          console.log("Surowa odpowiedź OCR:", tekstOdpowiedzi);
+
+          let wynik;
+
+          try {
+            wynik = JSON.parse(tekstOdpowiedzi);
+          } catch (blad) {
+            console.error("Nieprawidłowa odpowiedź JSON:", blad);
+            throw new Error("Worker zwrócił nieprawidłową odpowiedź.");
+          }
 
           console.log("Odpowiedź OCR:", wynik);
 

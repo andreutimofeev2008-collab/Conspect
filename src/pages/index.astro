@@ -1,4 +1,13 @@
 ---
+import { getCollection } from "astro:content";
+import "../styles/global.css";
+
+const notatki = await getCollection("notatki");
+
+const ostatnieNotatki = notatki
+  .sort((a, b) => b.data.data.getTime() - a.data.data.getTime())
+  .slice(0, 5);
+
 const przedmioty = [
   {
     slug: "pracownia-urzadzen-sieciowych",
@@ -59,30 +68,59 @@ const przedmioty = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Notatki</title>
+    <title>E-Notatki</title>
   </head>
 
   <body>
     <main>
-      <h1>📚 Notatki</h1>
+      <header class="naglowek-strony">
+        <div>
+          <h1>E-Notatki</h1>
 
-      <p>Internetowa biblioteka notatek szkolnych.</p>
+          <p>Internetowa biblioteka notatek szkolnych.</p>
+        </div>
 
+        <a class="przycisk-glowny" href="/Conspect/dodaj/">
+          Dodaj notatkę
+        </a>
+      </header>
       <h2>Przedmioty</h2>
 
-      <ul>
+      <div class="subjects">
         {przedmioty.map((przedmiot) => (
-          <li>
-            <a href={`/Conspect/przedmioty/${przedmiot.slug}/`}>
-              {przedmiot.nazwa}
-            </a>
-          </li>
+          <a
+            class="subject-card"
+            href={`/Conspect/przedmioty/${przedmiot.slug}/`}
+          >
+            {przedmiot.nazwa}
+          </a>
         ))}
-      </ul>
+      </div>
+      <section class="ostatnie-notatki">
+        <h2>Ostatnie notatki</h2>
 
-      <h2>Ostatnie notatki</h2>
+        <div class="notes-list">
+          <p>Liczba notatek: {notatki.length}</p>
 
-      <p>Na razie nie ma tutaj żadnych notatek.</p>
+          {ostatnieNotatki.length === 0 ? (
+            <p>Brak opublikowanych notatek.</p>
+          ) : (
+            ostatnieNotatki.map((notatka) => (
+              <a class="note-card" href={`/Conspect/notatki/${notatka.id}/`}>
+                <strong>{notatka.data.tytul}</strong>
+
+                <span class="note-subject">{notatka.data.przedmiot}</span>
+
+                <span class="note-topic">{notatka.data.temat}</span>
+
+                <span class="note-date">
+                  {notatka.data.data.toLocaleDateString("pl-PL")}
+                </span>
+              </a>
+            ))
+          )}
+        </div>
+      </section>
     </main>
   </body>
 </html>

@@ -1,4 +1,6 @@
 ---
+import "../../styles/global.css";
+
 const przedmioty = [
   "Pracownia urządzeń sieciowych",
   "Pracownia urządzeń techniki komputerowej",
@@ -29,14 +31,33 @@ const przedmioty = [
   </head>
 
   <body>
-    <main>
+    <main class="formularz-notatki">
       <p>
-        <a href="/Conspect/">← Powrót do strony głównej</a>
+        <a class="link-powrot" href="/Conspect/">
+          ← Powrót do strony głównej
+        </a>
       </p>
 
       <h1>Dodaj notatkę</h1>
 
+      <p class="opis">
+        Utwórz nową notatkę, dodaj zdjęcie lub skan i rozpoznaj tekst za pomocą
+        OCR.
+      </p>
+
       <form id="formularz-notatki">
+        <p>
+          <label for="tytul">Tytuł notatki</label>
+          <br />
+          <input
+            id="tytul"
+            name="tytul"
+            type="text"
+            placeholder="Np. Pole prostokątne"
+            required
+          />
+        </p>
+
         <p>
           <label for="przedmiot">Przedmiot</label>
           <br />
@@ -74,7 +95,7 @@ const przedmioty = [
           <label for="tresc">Treść notatki</label>
         </p>
 
-        <p>
+        <div class="przyciski-formatowania">
           <button id="przycisk-pogrubienie" type="button">
             Pogrubienie
           </button>
@@ -94,8 +115,7 @@ const przedmioty = [
           <button id="przycisk-tabela" type="button">
             Tabela
           </button>
-        </p>
-
+        </div>
         <p>
           <textarea
             id="tresc"
@@ -105,7 +125,6 @@ const przedmioty = [
             required
           ></textarea>
         </p>
-
         <p>
           <label for="obraz">Obraz lub skan</label>
           <br />
@@ -113,29 +132,26 @@ const przedmioty = [
           <input id="obraz" name="obraz" type="file" accept="image/*" />
         </p>
 
-        <div id="podglad-obrazu-kontener" hidden>
+        <div id="podglad-obrazu-kontener" class="sekcja-ocr" hidden>
           <h3>Podgląd zdjęcia</h3>
 
           <img id="podglad-obrazu" alt="Podgląd wybranego zdjęcia" />
 
-          <p>
+          <div class="przyciski-formatowania">
             <button id="usun-obraz" type="button">
               Usuń zdjęcie
             </button>
-          </p>
 
-          <p>
             <button id="przycisk-ocr" type="button">
               🔍 Rozpoznaj tekst ze zdjęcia
             </button>
-          </p>
-
+          </div>
           <p id="status-ocr" hidden>
             ⏳ Trwa rozpoznawanie tekstu...
           </p>
         </div>
 
-        <div id="wynik-ocr-kontener" hidden>
+        <div id="wynik-ocr-kontener" class="sekcja-ocr" hidden>
           <h3>Wynik rozpoznawania</h3>
 
           <textarea
@@ -151,8 +167,8 @@ const przedmioty = [
           </p>
         </div>
 
-        <p>
-          <button id="przycisk-podgladu" type="button">
+        <div class="przyciski-formatowania">
+          <button id="przycisk-podgladu" class="przycisk-glowny" type="button">
             Podgląd
           </button>
 
@@ -160,11 +176,13 @@ const przedmioty = [
             Wyczyść formularz
           </button>
 
-          <button type="submit">Opublikuj notatkę</button>
-        </p>
+          <button class="przycisk-glowny" type="submit">
+            Opublikuj notatkę
+          </button>
+        </div>
       </form>
 
-      <section id="podglad" hidden>
+      <section id="podglad" class="podglad" hidden>
         <hr />
 
         <h2>Podgląd notatki</h2>
@@ -474,7 +492,7 @@ const przedmioty = [
         podglad.hidden = false;
       });
 
-      formularz.addEventListener("submit", (zdarzenie) => {
+      formularz.addEventListener("submit", async (zdarzenie) => {
         zdarzenie.preventDefault();
 
         const tytul = document.querySelector("#tytul").value.trim();
@@ -488,35 +506,43 @@ const przedmioty = [
           return;
         }
 
-        const slug = tytul
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "");
+        const kodPublikacji = prompt("Podaj kod publikacji:");
 
-        const markdown = `---
-tytul: ${tytul}
-przedmiot: ${przedmiot}
-temat: ${temat}
-data: ${data}
----
+        if (!kodPublikacji) {
+          return;
+        }
 
-${tresc}
-`;
+        try {
+          const odpowiedz = await fetch(
+            "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev/publish",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                tytul,
+                przedmiot,
+                temat,
+                data,
+                tresc,
+                kodPublikacji,
+              }),
+            },
+          );
 
-        const plik = new Blob([markdown], {
-          type: "text/markdown;charset=utf-8",
-        });
+          const wynik = await odpowiedz.json();
 
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(plik);
-        link.download = `${slug}.md`;
-        link.click();
+          if (!odpowiedz.ok) {
+            alert(wynik.error || "Nie udało się opublikować notatki.");
+            return;
+          }
 
-        URL.revokeObjectURL(link.href);
-
-        alert("Notatka została przygotowana jako plik Markdown.");
+          alert("Notatka została opublikowana pomyślnie!");
+        } catch (blad) {
+          console.error(blad);
+          alert("Nie udało się połączyć z serwerem publikacji.");
+        }
       });
       formularz.addEventListener("reset", () => {
         setTimeout(() => {

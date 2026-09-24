@@ -1,0 +1,441 @@
+:root {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #1f2937;
+  background: #f5f7fb;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f5f7fb;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+main {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 60px;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  color: #111827;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0 0 16px;
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-top: 40px;
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+/* Карточки предметов */
+
+.subjects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.subject-card {
+  display: block;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.subject-card:hover {
+  transform: translateY(-3px);
+  border-color: #c7d2fe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+/* Список заметок */
+
+.notes-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.note-card {
+  display: block;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.note-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.note-subject,
+.note-topic,
+.note-date {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.note-subject {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.note-topic {
+  margin-top: 2px;
+  color: #64748b;
+}
+
+.note-date {
+  margin-top: 8px;
+  color: #94a3b8;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+/* Страница заметки */
+
+.note {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+}
+
+.note img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.note code {
+  padding: 2px 6px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+
+.note pre {
+  overflow-x: auto;
+  padding: 16px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 10px;
+}
+
+.note blockquote {
+  margin: 20px 0;
+  padding: 12px 18px;
+  border-left: 4px solid #6366f1;
+  background: #f8fafc;
+}
+
+/* Мобильные устройства */
+
+@media (max-width: 600px) {
+  main {
+    width: min(100% - 20px, 1100px);
+    padding: 24px 0 40px;
+  }
+
+  .note {
+    padding: 20px;
+    border-radius: 14px;
+  }
+
+  .subjects {
+    grid-template-columns: 1fr;
+  }
+}
+/* Formularz dodawania notatki */
+
+.formularz-notatki {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.formularz-notatki h1 {
+  margin-bottom: 8px;
+}
+
+.link-powrot {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.link-powrot:hover {
+  color: #4338ca;
+  text-decoration: underline;
+}
+
+.formularz-notatki .opis {
+  margin-bottom: 30px;
+  color: #64748b;
+}
+
+.formularz-notatki form {
+  display: grid;
+  gap: 20px;
+}
+
+.formularz-notatki form > p {
+  margin: 0;
+}
+
+.formularz-notatki label {
+  display: inline-block;
+  margin-bottom: 7px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.formularz-notatki input,
+.formularz-notatki select,
+.formularz-notatki textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font: inherit;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.formularz-notatki input:focus,
+.formularz-notatki select:focus,
+.formularz-notatki textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.formularz-notatki textarea {
+  min-height: 300px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* Przyciski formatowania */
+
+.przyciski-formatowania {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.przyciski-formatowania button {
+  padding: 8px 12px;
+  font: inherit;
+  font-weight: 600;
+  color: #374151;
+  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.przyciski-formatowania button:hover {
+  background: #eef2ff;
+  border-color: #a5b4fc;
+}
+
+/* Przyciski główne */
+
+.przycisk-glowny {
+  padding: 13px 20px;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: #4f46e5;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.przycisk-glowny:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.naglowek-strony {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+}
+
+.naglowek-strony h1 {
+  margin: 0 0 8px;
+}
+
+.naglowek-strony p {
+  margin: 0;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .naglowek-strony {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* Podgląd notatki */
+
+.podglad {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.podglad h2 {
+  margin-top: 0;
+}
+
+/* OCR */
+
+.sekcja-ocr {
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.sekcja-ocr h2 {
+  margin-top: 0;
+  font-size: 1.3rem;
+}
+
+.status-ocr {
+  margin-top: 10px;
+  color: #64748b;
+}
+
+/* Obraz */
+
+.podglad-obrazu {
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 500px !important;
+  margin-top: 12px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* Telefon */
+
+@media (max-width: 600px) {
+  .formularz-notatki {
+    width: 100%;
+  }
+
+  .formularz-notatki textarea {
+    min-height: 240px;
+  }
+
+  .przyciski-formatowania button {
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .podglad {
+    padding: 18px;
+  }
+}
+
+.note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 28px;
+}
+
+.note-meta span {
+  padding: 6px 10px;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.note-meta span:first-child {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.liczba-notatek {
+  margin-top: -12px;
+  color: #64748b;
+}

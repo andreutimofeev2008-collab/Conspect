@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
+import "../../styles/global.css";
 
 export async function getStaticPaths() {
   const notatki = await getCollection("notatki");
@@ -12,6 +13,26 @@ export async function getStaticPaths() {
 
 const { notatka } = Astro.props;
 const { Content } = await render(notatka);
+
+const slugiPrzedmiotow: Record<string, string> = {
+  "Pracownia urządzeń sieciowych": "pracownia-urzadzen-sieciowych",
+  "Pracownia urządzeń techniki komputerowej":
+    "pracownia-urzadzen-techniki-komputerowej",
+  "Projektowanie i administrowanie bazami danych":
+    "projektowanie-i-administrowanie-bazami-danych",
+  "Język angielski": "jezyk-angielski",
+  Matematyka: "matematyka",
+  Fizyka: "fizyka",
+  "Język niemiecki": "jezyk-niemiecki",
+  "Edukacja obywatelska": "edukacja-obywatelska",
+  Geografia: "geografia",
+  "Programowanie i obsługa drukarek 3D": "programowanie-i-obsluga-drukarek-3d",
+  "Język polski": "jezyk-polski",
+  Chemia: "chemia",
+  Historia: "historia",
+};
+
+const slugPrzedmiotu = slugiPrzedmiotow[notatka.data.przedmiot];
 ---
 
 <html lang="pl">
@@ -23,13 +44,26 @@ const { Content } = await render(notatka);
 
   <body>
     <main>
-      <p>
-        <a href="/Conspect/przedmioty/matematyka/">← Powrót do Matematyka</a>
-      </p>
+      <article class="note">
+        <p>
+          <a
+            class="link-powrot"
+            href={`/Conspect/przedmioty/${slugPrzedmiotu}/`}
+          >
+            ← Powrót do {notatka.data.przedmiot}
+          </a>
+        </p>
 
-      <h1>{notatka.data.tytul}</h1>
+        <h1>{notatka.data.tytul}</h1>
 
-      <Content />
+        <div class="note-meta">
+          <span>{notatka.data.przedmiot}</span>
+          <span>{notatka.data.temat}</span>
+          <span>{notatka.data.data.toLocaleDateString("pl-PL")}</span>
+        </div>
+
+        <Content />
+      </article>
     </main>
   </body>
 </html>

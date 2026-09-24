@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import "../../styles/global.css";
 
 export function getStaticPaths() {
   const przedmioty = {
@@ -30,9 +31,19 @@ export function getStaticPaths() {
 const { nazwa } = Astro.props;
 const notatki = await getCollection("notatki");
 
-const notatkiPrzedmiotu = notatki.filter(
-  (notatka) => notatka.data.przedmiot === nazwa,
-);
+const notatkiPrzedmiotu = notatki
+  .filter((notatka) => notatka.data.przedmiot === nazwa)
+  .sort((a, b) => {
+    const temat = a.data.temat.localeCompare(b.data.temat, "pl", {
+      sensitivity: "base",
+    });
+
+    if (temat !== 0) {
+      return temat;
+    }
+
+    return b.data.data.getTime() - a.data.data.getTime();
+  });
 ---
 
 <html lang="pl">
@@ -44,27 +55,40 @@ const notatkiPrzedmiotu = notatki.filter(
 
   <body>
     <main>
-      <p>
-        <a href="/Conspect/">← Powrót do strony głównej</a>
-      </p>
+      <section class="strona-przedmiotu">
+        <p>
+          <a class="link-powrot" href="/Conspect/">
+            ← Powrót do strony głównej
+          </a>
+        </p>
 
-      <h1>{nazwa}</h1>
+        <h1>{nazwa}</h1>
 
-      <h2>Notatki</h2>
+        <p class="liczba-notatek">
+          {notatkiPrzedmiotu.length}{" "}
+          {notatkiPrzedmiotu.length === 1 ? "notatka" : "notatek"}
+        </p>
 
-      {notatkiPrzedmiotu.length > 0 ? (
-        <ul>
-          {notatkiPrzedmiotu.map((notatka) => (
-            <li>
-              <a href={`/Conspect/notatki/${notatka.id}/`}>
-                {notatka.data.tytul}
+        <h2>Notatki</h2>
+
+        {notatkiPrzedmiotu.length > 0 ? (
+          <div class="notes-list">
+            {notatkiPrzedmiotu.map((notatka) => (
+              <a class="note-card" href={`/Conspect/notatki/${notatka.id}/`}>
+                <strong>{notatka.data.tytul}</strong>
+
+                <span class="note-topic">{notatka.data.temat}</span>
+
+                <span class="note-date">
+                  {notatka.data.data.toLocaleDateString("pl-PL")}
+                </span>
               </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Na razie nie ma tutaj żadnych notatek.</p>
-      )}
+            ))}
+          </div>
+        ) : (
+          <p>Na razie nie ma tutaj żadnych notatek.</p>
+        )}
+      </section>
     </main>
   </body>
 </html>

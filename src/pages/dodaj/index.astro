@@ -551,9 +551,20 @@ const przedmioty = [
           }
 
           if (!odpowiedz.ok) {
+            const szczegoly =
+              typeof wynik.details === "string"
+                ? wynik.details
+                : wynik.details
+                  ? JSON.stringify(wynik.details)
+                  : "";
             throw new Error(
-              wynik.error ||
-                `Serwer OCR zwrócił błąd HTTP ${odpowiedz.status}.`,
+              [
+                wynik.error ||
+                  `Serwer OCR zwrócił błąd HTTP ${odpowiedz.status}.`,
+                szczegoly ? `Szczegóły: ${szczegoly}` : "",
+              ]
+                .filter(Boolean)
+                .join(" "),
             );
           }
 

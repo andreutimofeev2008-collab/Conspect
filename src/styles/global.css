@@ -376,6 +376,62 @@ p {
   font-size: 1.3rem;
 }
 
+.wybor-trybu-ocr {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+
+.wybor-trybu-ocr legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.opcje-trybu-ocr {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.formularz-notatki .opcja-trybu-ocr {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.formularz-notatki .opcja-trybu-ocr input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  padding: 0;
+  accent-color: #4f46e5;
+}
+
+.opcja-trybu-ocr span {
+  display: grid;
+  gap: 2px;
+}
+
+.opcja-trybu-ocr small {
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 400;
+}
+
+@media (max-width: 600px) {
+  .opcje-trybu-ocr {
+    grid-template-columns: 1fr;
+  }
+}
+
 .status-ocr {
   margin-top: 10px;
   color: #64748b;

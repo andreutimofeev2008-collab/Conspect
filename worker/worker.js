@@ -85,6 +85,7 @@ export default {
 
         const plik = formularz.get("file");
         const jezyk = formularz.get("language") || "pol";
+        const silnikOcr = formularz.get("engine") || "2";
 
         if (!(plik instanceof File)) {
           return odpowiedz(
@@ -126,6 +127,16 @@ export default {
           );
         }
 
+        if (!["2", "3"].includes(silnikOcr)) {
+          return odpowiedz(
+            {
+              error: "Nieprawidłowy tryb OCR.",
+            },
+            400,
+            request,
+          );
+        }
+
         if (!env.OCRSPACE_API_KEY) {
           return odpowiedz(
             {
@@ -140,8 +151,7 @@ export default {
 
         daneOCR.append("apikey", env.OCRSPACE_API_KEY);
         daneOCR.append("language", jezyk);
-        // Engine 2 jest szybszy; Engine 3 wolniej przetwarza duże obrazy.
-        daneOCR.append("OCREngine", "2");
+        daneOCR.append("OCREngine", silnikOcr);
         daneOCR.append("isOverlayRequired", "false");
         daneOCR.append("file", plik);
 

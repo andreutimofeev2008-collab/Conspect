@@ -161,6 +161,26 @@ const przedmioty = [
 
           <img id="podglad-obrazu" alt="Podgląd wybranego zdjęcia" />
 
+          <fieldset class="wybor-trybu-ocr">
+            <legend>Tryb rozpoznawania</legend>
+            <div class="opcje-trybu-ocr">
+              <label class="opcja-trybu-ocr">
+                <input type="radio" name="tryb-ocr" value="2" checked />
+                <span>
+                  <strong>Szybki — tekst drukowany</strong>
+                  <small>Do zwykłego drukowanego tekstu</small>
+                </span>
+              </label>
+              <label class="opcja-trybu-ocr">
+                <input type="radio" name="tryb-ocr" value="3" />
+                <span>
+                  <strong>Ręczne pismo</strong>
+                  <small>Lepszy do odręcznych notatek, działa wolniej</small>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
           <div class="przyciski-formatowania">
             <button id="usun-obraz" type="button">
               Usuń zdjęcie
@@ -523,6 +543,10 @@ const przedmioty = [
           if (przedmiot.value === "Język angielski") jezyk = "eng";
           if (przedmiot.value === "Język niemiecki") jezyk = "ger";
           dane.append("language", jezyk);
+          const trybOcr =
+            document.querySelector('input[name="tryb-ocr"]:checked')?.value ||
+            "2";
+          dane.append("engine", trybOcr);
 
           let odpowiedz;
           try {

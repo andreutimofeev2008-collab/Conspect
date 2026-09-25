@@ -5,6 +5,7 @@ const DOZWOLONE_ORIGINS = [
 ];
 
 const MAKSYMALNY_ROZMIAR_OCR = 1_000_000;
+const LIMIT_CZASU_OCR_MS = 100_000;
 
 function naglowkiCors(request) {
   const origin = request.headers.get("Origin");
@@ -149,15 +150,20 @@ export default {
           odpowiedzOCR = await fetch("https://api.ocr.space/parse/image", {
             method: "POST",
             body: daneOCR,
-            signal: AbortSignal.timeout(55000),
+            signal: AbortSignal.timeout(LIMIT_CZASU_OCR_MS),
           });
         } catch (error) {
+          const timeout = error?.name === "TimeoutError";
+
           return odpowiedz(
             {
-              error: "Nie udało się połączyć z OCR.space.",
+              error: timeout
+                ? "OCR.space zbyt długo przetwarzał obraz. Spróbuj ponownie albo wybierz mniejszy fragment strony."
+                : "Nie udało się połączyć z OCR.space.",
+              code: timeout ? "OCR_TIMEOUT" : "OCR_CONNECTION_ERROR",
               details: error instanceof Error ? error.message : String(error),
             },
-            502,
+            timeout ? 504 : 502,
             request,
           );
         }

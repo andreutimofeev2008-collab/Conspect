@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import { grupyTytulow, normalizeTitle, przedmioty } from "../../../lib/catalog";
-import "../../../styles/global.css";
+import Layout from "../../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
   const notatki = await getCollection("notatki");
@@ -23,15 +23,8 @@ const tematy = [
 ].sort((a, b) => a.localeCompare(b, "pl", { sensitivity: "base" }));
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{grupa.tytul} — {nazwa} — E-Notatki</title>
-  </head>
-
-  <body>
-    <main>
+<Layout title={`${grupa.tytul} — ${nazwa} — E-Notatki`}>
+    <main class="page-shell">
       <section class="strona-przedmiotu">
         <p>
           <a class="link-powrot" href={`/Conspect/przedmioty/${slug}/`}>
@@ -134,5 +127,4 @@ const tematy = [
 
       zastosujFiltry();
     </script>
-  </body>
-</html>
+</Layout>

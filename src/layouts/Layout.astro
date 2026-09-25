@@ -1,23 +1,119 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "E-Notatki" } = Astro.props;
+---
+
 <!doctype html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro Basics</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f4f6fb" id="kolor-przegladarki" />
+    <meta
+      name="description"
+      content="E-Notatki — bezpłatna biblioteka szkolnych notatek."
+    />
+    <title>{title}</title>
+    <script is:inline>
+      (() => {
+        try {
+          const zapisana = localStorage.getItem("e-notatki-theme");
+          const systemowa = window.matchMedia?.(
+            "(prefers-color-scheme: dark)",
+          ).matches;
+          document.documentElement.dataset.theme =
+            zapisana === "dark" || zapisana === "light"
+              ? zapisana
+              : systemowa
+                ? "dark"
+                : "light";
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <slot name="head" />
   </head>
+
   <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-brand" href="/Conspect/" aria-label="E-Notatki — strona główna">
+          <span class="site-brand-mark" aria-hidden="true">E</span>
+          <span class="site-brand-copy">
+            <strong>E-Notatki</strong>
+            <small>Twoja szkolna baza wiedzy</small>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Nawigacja główna">
+          <a href="/Conspect/">Przedmioty</a>
+          <a class="site-nav-add" href="/Conspect/dodaj/">Dodaj notatkę</a>
+        </nav>
+
+        <button
+          id="przelacz-motyw"
+          class="theme-toggle"
+          type="button"
+          aria-label="Włącz ciemny motyw"
+          aria-pressed="false"
+        >
+          <span id="ikona-motywu" aria-hidden="true">☾</span>
+          <span id="tekst-motywu">Tryb ciemny</span>
+        </button>
+      </div>
+    </header>
+
     <slot />
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <span>E-Notatki <span aria-hidden="true">·</span> Darmowe notatki szkolne</span>
+        <a href="/Conspect/dodaj/">Dodaj notatkę</a>
+      </div>
+    </footer>
+
+    <script>
+      const przyciskMotywu = document.querySelector("#przelacz-motyw");
+      const ikonaMotywu = document.querySelector("#ikona-motywu");
+      const tekstMotywu = document.querySelector("#tekst-motywu");
+      const kolorPrzegladarki = document.querySelector("#kolor-przegladarki");
+      const kluczMotywu = "e-notatki-theme";
+
+      function ustawMotyw(motyw) {
+        const ciemny = motyw === "dark";
+        document.documentElement.dataset.theme = motyw;
+        przyciskMotywu.setAttribute("aria-pressed", String(ciemny));
+        przyciskMotywu.setAttribute(
+          "aria-label",
+          ciemny ? "Włącz jasny motyw" : "Włącz ciemny motyw",
+        );
+        ikonaMotywu.textContent = ciemny ? "☀" : "☾";
+        tekstMotywu.textContent = ciemny ? "Tryb jasny" : "Tryb ciemny";
+        kolorPrzegladarki.content = ciemny ? "#111827" : "#f4f6fb";
+        try {
+          localStorage.setItem(kluczMotywu, motyw);
+        } catch {
+          // Motyw działa również wtedy, gdy przeglądarka blokuje localStorage.
+        }
+      }
+
+      const poczatkowyMotyw = document.documentElement.dataset.theme;
+      ustawMotyw(poczatkowyMotyw === "dark" ? "dark" : "light");
+
+      przyciskMotywu.addEventListener("click", () => {
+        const nastepnyMotyw =
+          document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        ustawMotyw(nastepnyMotyw);
+      });
+    </script>
   </body>
 </html>
-
-<style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-  }
-</style>

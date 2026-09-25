@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
 
 const notatki = await getCollection("notatki");
 
@@ -64,27 +64,27 @@ const przedmioty = [
 ];
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>E-Notatki</title>
-  </head>
-
-  <body>
-    <main>
+<Layout title="E-Notatki">
+    <main class="page-shell">
       <header class="naglowek-strony">
         <div>
+          <p class="hero-kicker">Materiały od uczniów dla uczniów</p>
           <h1>E-Notatki</h1>
 
-          <p>Internetowa biblioteka notatek szkolnych.</p>
+          <p>Wszystkie szkolne notatki w jednym, wygodnym miejscu.</p>
         </div>
 
         <a class="przycisk-glowny" href="/Conspect/dodaj/">
           Dodaj notatkę
         </a>
       </header>
-      <h2>Przedmioty</h2>
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Zacznij od wyboru</p>
+          <h2>Przedmioty</h2>
+        </div>
+        <span class="section-count">{przedmioty.length} przedmiotów</span>
+      </div>
 
       <div class="subjects">
         {przedmioty.map((przedmiot) => (
@@ -97,13 +97,17 @@ const przedmioty = [
         ))}
       </div>
       <section class="ostatnie-notatki">
-        <h2>Ostatnie notatki</h2>
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Świeżo dodane</p>
+            <h2>Ostatnie notatki</h2>
+          </div>
+          <span class="section-count">{notatki.length} łącznie</span>
+        </div>
 
         <div class="notes-list">
-          <p>Liczba notatek: {notatki.length}</p>
-
           {ostatnieNotatki.length === 0 ? (
-            <p>Brak opublikowanych notatek.</p>
+            <p class="empty-state">Brak opublikowanych notatek.</p>
           ) : (
             ostatnieNotatki.map((notatka) => (
               <a class="note-card" href={`/Conspect/notatki/${notatka.id}/`}>
@@ -122,5 +126,4 @@ const przedmioty = [
         </div>
       </section>
     </main>
-  </body>
-</html>
+</Layout>

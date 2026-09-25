@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import { przedmioty, grupyTytulow } from "../../lib/catalog";
-import "../../styles/global.css";
+import Layout from "../../layouts/Layout.astro";
 
 export function getStaticPaths() {
   return przedmioty.map(({ slug, nazwa }) => ({
@@ -19,15 +19,8 @@ const liczbaNotatek = grupy.reduce(
 );
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{nazwa} — E-Notatki</title>
-  </head>
-
-  <body>
-    <main>
+<Layout title={`${nazwa} — E-Notatki`}>
+    <main class="page-shell">
       <section class="strona-przedmiotu">
         <p>
           <a class="link-powrot" href="/Conspect/">
@@ -40,7 +33,12 @@ const liczbaNotatek = grupy.reduce(
           {grupy.length} {grupy.length === 1 ? "tytule" : "tytułach"}
         </p>
 
-        <h2>Tytuły notatek</h2>
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Wybierz grupę</p>
+            <h2>Tytuły notatek</h2>
+          </div>
+        </div>
         {grupy.length > 0 ? (
           <div class="subjects">
             {grupy.map((grupa) => (
@@ -57,9 +55,8 @@ const liczbaNotatek = grupy.reduce(
             ))}
           </div>
         ) : (
-          <p>Na razie nie ma tutaj żadnych notatek.</p>
+          <p class="empty-state">Na razie nie ma tutaj żadnych notatek.</p>
         )}
       </section>
     </main>
-  </body>
-</html>
+</Layout>

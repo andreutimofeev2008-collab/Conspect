@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import { grupyTytulow, przedmiotSlug } from "../../lib/catalog";
-import "../../styles/global.css";
+import Layout from "../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
   const notatki = await getCollection("notatki");
@@ -29,15 +29,8 @@ const { notatka, slugTytulu } = Astro.props;
 const { Content } = await render(notatka);
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{notatka.data.tytul} — E-Notatki</title>
-  </head>
-
-  <body>
-    <main>
+<Layout title={`${notatka.data.tytul} — E-Notatki`}>
+    <main class="page-shell">
       <article class="note">
         <p>
           <a class="link-powrot" href={`/Conspect/przedmioty/${slugTytulu}/`}>
@@ -114,5 +107,4 @@ const { Content } = await render(notatka);
         }
       });
     </script>
-  </body>
-</html>
+</Layout>

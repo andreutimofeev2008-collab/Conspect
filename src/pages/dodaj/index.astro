@@ -1,5 +1,5 @@
 ---
-import "../../styles/global.css";
+import Layout from "../../layouts/Layout.astro";
 
 const przedmioty = [
   "Pracownia urządzeń sieciowych",
@@ -18,20 +18,14 @@ const przedmioty = [
 ];
 ---
 
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Dodaj notatkę — Notatki</title>
-
+<Layout title="Dodaj notatkę — E-Notatki">
     <link
+      slot="head"
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
     />
-  </head>
 
-  <body>
-    <main class="formularz-notatki">
+    <main class="page-shell formularz-notatki">
       <p>
         <a class="link-powrot" href="/Conspect/">
           ← Powrót do strony głównej
@@ -159,7 +153,11 @@ const przedmioty = [
         <div id="podglad-obrazu-kontener" class="sekcja-ocr" hidden>
           <h3>Podgląd zdjęcia</h3>
 
-          <img id="podglad-obrazu" alt="Podgląd wybranego zdjęcia" />
+          <img
+            id="podglad-obrazu"
+            class="podglad-obrazu"
+            alt="Podgląd wybranego zdjęcia"
+          />
 
           <fieldset class="wybor-trybu-ocr">
             <legend>Tryb rozpoznawania</legend>
@@ -781,5 +779,4 @@ const przedmioty = [
         }, 0);
       });
     </script>
-  </body>
-</html>
+</Layout>

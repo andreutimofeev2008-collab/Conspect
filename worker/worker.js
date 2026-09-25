@@ -140,7 +140,8 @@ export default {
 
         daneOCR.append("apikey", env.OCRSPACE_API_KEY);
         daneOCR.append("language", jezyk);
-        daneOCR.append("OCREngine", "3");
+        // Engine 2 jest szybszy; Engine 3 wolniej przetwarza duże obrazy.
+        daneOCR.append("OCREngine", "2");
         daneOCR.append("isOverlayRequired", "false");
         daneOCR.append("file", plik);
 
@@ -167,15 +168,41 @@ export default {
             request,
           );
         }
-        const wynikOCR = await odpowiedzOCR.json();
+        const tekstOdpowiedziOCR = await odpowiedzOCR.text();
+        let wynikOCR;
+
+        try {
+          wynikOCR = JSON.parse(tekstOdpowiedziOCR);
+        } catch {
+          const timeout = odpowiedzOCR.status === 504;
+
+          return odpowiedz(
+            {
+              error: timeout
+                ? "OCR.space nie zdążył przetworzyć obrazu (HTTP 504). Spróbuj ponownie lub wybierz mniejszy fragment strony."
+                : "OCR.space zwrócił odpowiedź w nieoczekiwanym formacie.",
+              code: timeout ? "OCR_UPSTREAM_TIMEOUT" : "OCR_INVALID_RESPONSE",
+              details: tekstOdpowiedziOCR.slice(0, 300),
+            },
+            timeout ? 504 : 502,
+            request,
+          );
+        }
 
         if (!odpowiedzOCR.ok) {
           return odpowiedz(
             {
-              error: "Błąd OCR.space.",
+              error:
+                odpowiedzOCR.status === 504
+                  ? "OCR.space nie zdążył przetworzyć obrazu (HTTP 504). Spróbuj ponownie lub wybierz mniejszy fragment strony."
+                  : "Błąd OCR.space.",
+              code:
+                odpowiedzOCR.status === 504
+                  ? "OCR_UPSTREAM_TIMEOUT"
+                  : "OCR_UPSTREAM_ERROR",
               details: wynikOCR,
             },
-            502,
+            odpowiedzOCR.status === 504 ? 504 : 502,
             request,
           );
         }

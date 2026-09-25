@@ -381,6 +381,76 @@ p {
   color: #64748b;
 }
 
+.status-ocr-blad {
+  color: #b91c1c;
+}
+
+.katalog-filtry {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 28px 0 12px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.katalog-filtry label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.katalog-filtry input,
+.katalog-filtry select {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.note-card[hidden] {
+  display: none;
+}
+
+.usuwanie-notatki {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.usuwanie-notatki h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.przycisk-usun-notatke {
+  padding: 10px 14px;
+  color: #9f1239;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.przycisk-usun-notatke:hover {
+  background: #ffe4e6;
+}
+
+.przycisk-usun-notatke:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* Obraz */
 
 .podglad-obrazu {
@@ -438,4 +508,79 @@ p {
 .liczba-notatek {
   margin-top: -12px;
   color: #64748b;
+}
+
+.formularz-notatki .wybor-obrazu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.formularz-notatki .input-pliku-ukryty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.formularz-notatki .przycisk-wstaw-zdjecie,
+.formularz-notatki .przycisk-wstaw-tekst {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 18px;
+  color: #ffffff;
+  background: #4f46e5;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.formularz-notatki .przycisk-wstaw-zdjecie:hover,
+.formularz-notatki .przycisk-wstaw-tekst:hover {
+  color: #ffffff;
+  background: #4338ca;
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.22);
+  transform: translateY(-1px);
+}
+
+.formularz-notatki .przycisk-wstaw-zdjecie:focus-visible,
+.formularz-notatki .przycisk-wstaw-tekst:focus-visible,
+.formularz-notatki .input-pliku-ukryty:focus-visible + .przycisk-wstaw-zdjecie {
+  outline: 3px solid rgba(99, 102, 241, 0.35);
+  outline-offset: 3px;
+}
+
+.formularz-notatki .nazwa-obrazu {
+  color: #64748b;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.przyciski-formatowania .przycisk-usun-tresc {
+  color: #9f1239;
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.przyciski-formatowania .przycisk-usun-tresc:hover {
+  color: #881337;
+  background: #ffe4e6;
+  border-color: #fda4af;
 }

@@ -1,0 +1,138 @@
+---
+import { getCollection } from "astro:content";
+import { grupyTytulow, normalizeTitle, przedmioty } from "../../../lib/catalog";
+import "../../../styles/global.css";
+
+export async function getStaticPaths() {
+  const notatki = await getCollection("notatki");
+
+  return przedmioty.flatMap(({ slug, nazwa }) =>
+    grupyTytulow(notatki, nazwa).map((grupa) => ({
+      params: { slug, title: grupa.slug },
+      props: { slug, nazwa, grupa },
+    })),
+  );
+}
+
+const { slug, nazwa, grupa } = Astro.props;
+const notatkiGrupy = [...grupa.notatki].sort(
+  (a, b) => b.data.data.getTime() - a.data.data.getTime(),
+);
+const tematy = [
+  ...new Set(notatkiGrupy.map((notatka) => notatka.data.temat)),
+].sort((a, b) => a.localeCompare(b, "pl", { sensitivity: "base" }));
+---
+
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{grupa.tytul} — {nazwa} — E-Notatki</title>
+  </head>
+
+  <body>
+    <main>
+      <section class="strona-przedmiotu">
+        <p>
+          <a class="link-powrot" href={`/Conspect/przedmioty/${slug}/`}>
+            ← Powrót do {nazwa}
+          </a>
+        </p>
+        <h1>{grupa.tytul}</h1>
+        <p class="liczba-notatek">
+          {nazwa} · {notatkiGrupy.length}{" "}
+          {notatkiGrupy.length === 1 ? "notatka" : "notatek"}
+        </p>
+
+        <div class="katalog-filtry" aria-label="Filtrowanie notatek">
+          <label>
+            Temat
+            <select id="filtr-tematu">
+              <option value="">Wszystkie tematy</option>
+              {tematy.map((temat) => (
+                <option value={normalizeTitle(temat)}>{temat}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Data od
+            <input id="filtr-data-od" type="date" />
+          </label>
+          <label>
+            Data do
+            <input id="filtr-data-do" type="date" />
+          </label>
+          <label>
+            Kolejność
+            <select id="sortowanie-daty">
+              <option value="najnowsze">Od najnowszych</option>
+              <option value="najstarsze">Od najstarszych</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="wynik-filtra" class="liczba-notatek" aria-live="polite"></p>
+        <div id="lista-notatek-grupy" class="notes-list">
+          {notatkiGrupy.map((notatka) => (
+            <a
+              class="note-card"
+              href={`/Conspect/notatki/${notatka.id}/`}
+              data-topic={normalizeTitle(notatka.data.temat)}
+              data-date={notatka.data.data.toISOString().slice(0, 10)}
+            >
+              <strong>{notatka.data.tytul}</strong>
+              <span class="note-topic">{notatka.data.temat}</span>
+              <span class="note-date">
+                {notatka.data.data.toLocaleDateString("pl-PL")}
+              </span>
+            </a>
+          ))}
+        </div>
+        <p id="brak-wynikow" hidden>
+          Brak notatek spełniających wybrane filtry.
+        </p>
+      </section>
+    </main>
+    <script>
+      const lista = document.querySelector("#lista-notatek-grupy");
+      const karty = [...lista.querySelectorAll(".note-card")];
+      const temat = document.querySelector("#filtr-tematu");
+      const dataOd = document.querySelector("#filtr-data-od");
+      const dataDo = document.querySelector("#filtr-data-do");
+      const sortowanie = document.querySelector("#sortowanie-daty");
+      const licznik = document.querySelector("#wynik-filtra");
+      const brakWynikow = document.querySelector("#brak-wynikow");
+
+      function zastosujFiltry() {
+        const pasujace = [];
+
+        for (const karta of karty) {
+          const data = karta.dataset.date;
+          const widoczna =
+            (!temat.value || karta.dataset.topic === temat.value) &&
+            (!dataOd.value || data >= dataOd.value) &&
+            (!dataDo.value || data <= dataDo.value);
+
+          karta.hidden = !widoczna;
+          if (widoczna) pasujace.push(karta);
+        }
+
+        pasujace.sort((a, b) => {
+          const roznica = a.dataset.date.localeCompare(b.dataset.date);
+          return sortowanie.value === "najstarsze" ? roznica : -roznica;
+        });
+
+        for (const karta of pasujace) lista.append(karta);
+
+        licznik.textContent = `Widoczne notatki: ${pasujace.length} z ${karty.length}`;
+        brakWynikow.hidden = pasujace.length > 0;
+      }
+
+      [temat, dataOd, dataDo, sortowanie].forEach((element) =>
+        element.addEventListener("change", zastosujFiltry),
+      );
+
+      zastosujFiltry();
+    </script>
+  </body>
+</html>

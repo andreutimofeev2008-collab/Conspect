@@ -1,61 +1,51 @@
 ---
 import { getCollection, render } from "astro:content";
+import { grupyTytulow, przedmiotSlug } from "../../lib/catalog";
 import "../../styles/global.css";
 
 export async function getStaticPaths() {
   const notatki = await getCollection("notatki");
+  const slugiTytulow = new Map<string, string>();
+
+  for (const notatka of notatki) {
+    const slug = przedmiotSlug(notatka.data.przedmiot);
+    const grupa = grupyTytulow(notatki, notatka.data.przedmiot).find(
+      (element) =>
+        element.notatki.some(
+          (elementNotatki) => elementNotatki.id === notatka.id,
+        ),
+    );
+
+    if (grupa) slugiTytulow.set(notatka.id, `${slug}/${grupa.slug}`);
+  }
 
   return notatki.map((notatka) => ({
     params: { slug: notatka.id },
-    props: { notatka },
+    props: { notatka, slugTytulu: slugiTytulow.get(notatka.id) },
   }));
 }
 
-const { notatka } = Astro.props;
+const { notatka, slugTytulu } = Astro.props;
 const { Content } = await render(notatka);
-
-const slugiPrzedmiotow: Record<string, string> = {
-  "Pracownia urządzeń sieciowych": "pracownia-urzadzen-sieciowych",
-  "Pracownia urządzeń techniki komputerowej":
-    "pracownia-urzadzen-techniki-komputerowej",
-  "Projektowanie i administrowanie bazami danych":
-    "projektowanie-i-administrowanie-bazami-danych",
-  "Język angielski": "jezyk-angielski",
-  Matematyka: "matematyka",
-  Fizyka: "fizyka",
-  "Język niemiecki": "jezyk-niemiecki",
-  "Edukacja obywatelska": "edukacja-obywatelska",
-  Geografia: "geografia",
-  "Programowanie i obsługa drukarek 3D": "programowanie-i-obsluga-drukarek-3d",
-  "Język polski": "jezyk-polski",
-  Chemia: "chemia",
-  Historia: "historia",
-};
-
-const slugPrzedmiotu = slugiPrzedmiotow[notatka.data.przedmiot];
 ---
 
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>{notatka.data.tytul} — Notatki</title>
+    <title>{notatka.data.tytul} — E-Notatki</title>
   </head>
 
   <body>
     <main>
       <article class="note">
         <p>
-          <a
-            class="link-powrot"
-            href={`/Conspect/przedmioty/${slugPrzedmiotu}/`}
-          >
-            ← Powrót do {notatka.data.przedmiot}
+          <a class="link-powrot" href={`/Conspect/przedmioty/${slugTytulu}/`}>
+            ← Powrót do {notatka.data.przedmiot} · {notatka.data.tytul}
           </a>
         </p>
 
         <h1>{notatka.data.tytul}</h1>
-
         <div class="note-meta">
           <span>{notatka.data.przedmiot}</span>
           <span>{notatka.data.temat}</span>
@@ -63,7 +53,66 @@ const slugPrzedmiotu = slugiPrzedmiotow[notatka.data.przedmiot];
         </div>
 
         <Content />
+
+        <section class="usuwanie-notatki" aria-labelledby="naglowek-usuwania">
+          <h2 id="naglowek-usuwania">Zarządzanie notatką</h2>
+          <p>Usunięcie skasuje opublikowany plik z bieżącej gałęzi serwisu.</p>
+          <button
+            id="usun-opublikowana-notatke"
+            class="przycisk-usun-notatke"
+            type="button"
+            data-note-id={notatka.id}
+          >
+            Usuń tę notatkę
+          </button>
+          <p id="status-usuwania" role="status" aria-live="polite" hidden></p>
+        </section>
       </article>
     </main>
+    <script>
+      const workerUrl =
+        "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev";
+      const przycisk = document.querySelector("#usun-opublikowana-notatke");
+      const status = document.querySelector("#status-usuwania");
+
+      przycisk.addEventListener("click", async () => {
+        const noteId = przycisk.dataset.noteId;
+
+        if (!confirm("Czy na pewno usunąć tę opublikowaną notatkę?")) return;
+
+        const kodPublikacji = prompt(
+          "Podaj aktualny kod publikacji, aby potwierdzić usunięcie:",
+        );
+        if (!kodPublikacji) return;
+
+        przycisk.disabled = true;
+        status.hidden = false;
+        status.textContent = "Trwa usuwanie notatki…";
+
+        try {
+          const odpowiedz = await fetch(`${workerUrl}/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ noteId, kodPublikacji }),
+          });
+          const wynik = await odpowiedz.json().catch(() => ({}));
+
+          if (!odpowiedz.ok) {
+            throw new Error(
+              wynik.error || `Serwer zwrócił błąd ${odpowiedz.status}.`,
+            );
+          }
+
+          status.textContent = `${wynik.message} Strona zaktualizuje się po ponownym wdrożeniu.`;
+          przycisk.hidden = true;
+        } catch (blad) {
+          status.textContent =
+            blad instanceof TypeError
+              ? "Nie udało się połączyć z serwerem usuwania. Sprawdź połączenie z internetem i spróbuj ponownie."
+              : blad.message || "Nie udało się usunąć notatki.";
+          przycisk.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>

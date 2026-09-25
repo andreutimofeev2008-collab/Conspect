@@ -125,12 +125,36 @@ const przedmioty = [
             required
           ></textarea>
         </p>
-        <p>
-          <label for="obraz">Obraz lub skan</label>
-          <br />
-
-          <input id="obraz" name="obraz" type="file" accept="image/*" />
+        <div class="przyciski-formatowania">
+          <button
+            id="wyczysc-tresc-notatki"
+            class="przycisk-usun-tresc"
+            type="button"
+          >
+            🗑 Wyczyść treść notatki
+          </button>
+        </div>
+        <p class="wybor-obrazu">
+          <input
+            id="obraz"
+            class="input-pliku-ukryty"
+            name="obraz"
+            type="file"
+            accept="image/*"
+          />
+          <label for="obraz" class="przycisk-wstaw-zdjecie">
+            📷 Wstaw zdjęcie
+          </label>
+          <span id="nazwa-obrazu" class="nazwa-obrazu">
+            Nie wybrano zdjęcia
+          </span>
         </p>
+
+        <p class="opis">
+          Możesz też wkleić zrzut ekranu ze schowka skrótem Ctrl+V.
+        </p>
+
+        <p id="status-obrazu" role="status" aria-live="polite" hidden></p>
 
         <div id="podglad-obrazu-kontener" class="sekcja-ocr" hidden>
           <h3>Podgląd zdjęcia</h3>
@@ -146,7 +170,13 @@ const przedmioty = [
               🔍 Rozpoznaj tekst ze zdjęcia
             </button>
           </div>
-          <p id="status-ocr" hidden>
+          <p
+            id="status-ocr"
+            class="status-ocr"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
             ⏳ Trwa rozpoznawanie tekstu...
           </p>
         </div>
@@ -161,8 +191,12 @@ const przedmioty = [
           ></textarea>
 
           <p>
-            <button id="wstaw-tekst-ocr" type="button">
-              ⬇️ Wstaw tekst do notatki
+            <button
+              id="wstaw-tekst-ocr"
+              class="przycisk-wstaw-tekst"
+              type="button"
+            >
+              ⬇️ Wstaw rozpoznany tekst
             </button>
           </p>
         </div>
@@ -212,6 +246,9 @@ const przedmioty = [
       import { marked } from "marked";
       import katex from "katex";
 
+      const workerUrl =
+        "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev";
+
       const formularz = document.querySelector("#formularz-notatki");
 
       const przyciskPodgladu = document.querySelector("#przycisk-podgladu");
@@ -228,11 +265,17 @@ const przedmioty = [
 
       const obraz = document.querySelector("#obraz");
 
+      const nazwaObrazu = document.querySelector("#nazwa-obrazu");
+
+      const statusObrazu = document.querySelector("#status-obrazu");
+
       const podgladObrazuKontener = document.querySelector(
         "#podglad-obrazu-kontener",
       );
 
       const podgladObrazu = document.querySelector("#podglad-obrazu");
+
+      let adresObrazu = null;
 
       const usunObraz = document.querySelector("#usun-obraz");
 
@@ -309,29 +352,74 @@ const przedmioty = [
         tresc.focus();
       });
 
+      function pokazPodgladObrazu(plik) {
+        if (adresObrazu) {
+          URL.revokeObjectURL(adresObrazu);
+        }
+
+        adresObrazu = URL.createObjectURL(plik);
+        podgladObrazu.src = adresObrazu;
+        nazwaObrazu.textContent = plik.name || "Wybrane zdjęcie";
+        podgladObrazuKontener.hidden = false;
+        wynikOcrKontener.hidden = true;
+        wynikOcr.value = "";
+        statusObrazu.hidden = true;
+      }
+
       obraz.addEventListener("change", () => {
         const plik = obraz.files[0];
 
-        if (!plik) {
+        if (plik) {
+          pokazPodgladObrazu(plik);
+        }
+      });
+
+      document.addEventListener("paste", (zdarzenie) => {
+        const elementObrazu = Array.from(
+          zdarzenie.clipboardData?.items ?? [],
+        ).find((element) => element.type.startsWith("image/"));
+
+        const obrazZeSchowka = elementObrazu?.getAsFile();
+
+        if (!obrazZeSchowka) {
           return;
         }
 
-        const adresObrazu = URL.createObjectURL(plik);
+        zdarzenie.preventDefault();
 
-        podgladObrazu.src = adresObrazu;
+        const typObrazu = obrazZeSchowka.type || "image/png";
+        const rozszerzenie =
+          typObrazu.split("/")[1]?.replace(/[^a-z0-9]/gi, "") || "png";
+        const plik = new File(
+          [obrazZeSchowka],
+          `zrzut-ekranu.${rozszerzenie}`,
+          { type: typObrazu },
+        );
+        const transfer = new DataTransfer();
 
-        podgladObrazuKontener.hidden = false;
+        transfer.items.add(plik);
+        obraz.files = transfer.files;
+        obraz.dispatchEvent(new Event("change", { bubbles: true }));
 
-        wynikOcrKontener.hidden = true;
-        wynikOcr.value = "";
+        statusObrazu.textContent =
+          "Zrzut ekranu wklejony. Możesz teraz rozpoznać tekst przez OCR.";
+        statusObrazu.hidden = false;
       });
 
       usunObraz.addEventListener("click", () => {
         obraz.value = "";
 
+        if (adresObrazu) {
+          URL.revokeObjectURL(adresObrazu);
+          adresObrazu = null;
+        }
+
         podgladObrazu.src = "";
+        nazwaObrazu.textContent = "Nie wybrano zdjęcia";
 
         podgladObrazuKontener.hidden = true;
+
+        statusObrazu.hidden = true;
 
         wynikOcrKontener.hidden = true;
 
@@ -344,6 +432,73 @@ const przedmioty = [
        * Obraz jest wysyłany do Cloudflare Worker.
        * Worker przekazuje go do OCR.space.
        */
+      async function przygotujObrazDoOcr(plik) {
+        const limit = 900_000;
+
+        if (plik.size <= limit) return plik;
+
+        statusOcr.hidden = false;
+        statusOcr.textContent = "Optymalizacja dużego obrazu do wysłania…";
+
+        let zrodlo;
+        let adresTymczasowy;
+
+        try {
+          if (typeof createImageBitmap === "function") {
+            zrodlo = await createImageBitmap(plik);
+          } else {
+            const obrazek = new Image();
+            adresTymczasowy = URL.createObjectURL(plik);
+            obrazek.src = adresTymczasowy;
+            await obrazek.decode();
+            zrodlo = obrazek;
+          }
+
+          const maksymalnyWymiar = 2200;
+          let skala = Math.min(
+            1,
+            maksymalnyWymiar / Math.max(zrodlo.width, zrodlo.height),
+          );
+          let jakosc = 0.84;
+
+          for (let proba = 0; proba < 8; proba += 1) {
+            const szerokosc = Math.max(1, Math.round(zrodlo.width * skala));
+            const wysokosc = Math.max(1, Math.round(zrodlo.height * skala));
+            const plotno = document.createElement("canvas");
+            plotno.width = szerokosc;
+            plotno.height = wysokosc;
+
+            const kontekst = plotno.getContext("2d");
+            if (!kontekst)
+              throw new Error("Nie można przygotować obrazu do OCR.");
+            kontekst.drawImage(zrodlo, 0, 0, szerokosc, wysokosc);
+
+            const blob = await new Promise((resolve) =>
+              plotno.toBlob(resolve, "image/jpeg", jakosc),
+            );
+            if (!blob) throw new Error("Nie udało się skompresować obrazu.");
+
+            if (blob.size <= limit) {
+              const nazwa = plik.name.replace(/\.[^.]+$/, "") || "obraz";
+              return new File([blob], `${nazwa}.jpg`, { type: "image/jpeg" });
+            }
+
+            if (proba % 2 === 0) {
+              jakosc = Math.max(0.5, jakosc - 0.12);
+            } else {
+              skala *= 0.82;
+            }
+          }
+
+          throw new Error(
+            "Nie udało się zmniejszyć obrazu poniżej limitu OCR.space (1 MB). Wybierz mniejsze zdjęcie.",
+          );
+        } finally {
+          if (typeof zrodlo?.close === "function") zrodlo.close();
+          if (adresTymczasowy) URL.revokeObjectURL(adresTymczasowy);
+        }
+      }
+
       przyciskOcr.addEventListener("click", async () => {
         const plik = obraz.files[0];
 
@@ -353,89 +508,87 @@ const przedmioty = [
         }
 
         statusOcr.hidden = false;
-        statusOcr.textContent = "⏳ Wysyłanie obrazu do rozpoznawania...";
-
+        statusOcr.textContent = "Wysyłanie obrazu do rozpoznawania…";
+        statusOcr.classList.remove("status-ocr-blad");
         przyciskOcr.disabled = true;
-
         wynikOcrKontener.hidden = true;
         wynikOcr.value = "";
 
         try {
+          const plikDoOcr = await przygotujObrazDoOcr(plik);
           const dane = new FormData();
+          dane.append("file", plikDoOcr);
 
-          dane.append("file", plik);
-
-          /*
-           * Wybór języka OCR na podstawie przedmiotu.
-           */
           let jezyk = "pol";
+          if (przedmiot.value === "Język angielski") jezyk = "eng";
+          if (przedmiot.value === "Język niemiecki") jezyk = "ger";
+          dane.append("language", jezyk);
 
-          if (przedmiot.value === "Język angielski") {
-            jezyk = "eng";
-          }
-
-          if (przedmiot.value === "Język niemiecki") {
-            jezyk = "ger";
-          }
-
-          dane.append("jezyk", jezyk);
-
-          const odpowiedz = await fetch(
-            "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev/ocr",
-            {
+          let odpowiedz;
+          try {
+            odpowiedz = await fetch(`${workerUrl}/ocr`, {
               method: "POST",
               body: dane,
-            },
-          );
+            });
+          } catch (blad) {
+            if (blad instanceof TypeError) {
+              throw new Error(
+                "Błąd połączenia sieciowego. Sprawdź internet lub spróbuj przełączyć sieć.",
+              );
+            }
+            throw blad;
+          }
 
           const tekstOdpowiedzi = await odpowiedz.text();
-
-          console.log("Surowa odpowiedź OCR:", tekstOdpowiedzi);
-
           let wynik;
 
           try {
             wynik = JSON.parse(tekstOdpowiedzi);
-          } catch (blad) {
-            console.error("Nieprawidłowa odpowiedź JSON:", blad);
-            throw new Error("Worker zwrócił nieprawidłową odpowiedź.");
+          } catch {
+            throw new Error(
+              `Worker zwrócił nieprawidłową odpowiedź (HTTP ${odpowiedz.status}).`,
+            );
           }
 
-          console.log("Odpowiedź OCR:", wynik);
+          if (!odpowiedz.ok) {
+            throw new Error(
+              wynik.error ||
+                `Serwer OCR zwrócił błąd HTTP ${odpowiedz.status}.`,
+            );
+          }
 
-          if (!odpowiedz.ok || wynik.IsErroredOnProcessing) {
-            console.error("Błąd OCR:", wynik);
-
-            throw new Error("OCR nie udało się wykonać.");
+          if (wynik.result?.IsErroredOnProcessing) {
+            const szczegoly = wynik.result?.ErrorMessage;
+            throw new Error(
+              Array.isArray(szczegoly)
+                ? szczegoly.join(" ")
+                : szczegoly || "OCR.space nie rozpoznał tego obrazu.",
+            );
           }
 
           const tekst =
-            wynik.ParsedResults?.map((element) => element.ParsedText).join(
-              "\n",
-            ) || "";
+            wynik.result?.ParsedResults?.map(
+              (element) => element.ParsedText,
+            ).join("\n") || "";
 
           if (!tekst.trim()) {
-            throw new Error("OCR nie rozpoznał tekstu.");
+            throw new Error("OCR nie rozpoznał tekstu na tym obrazie.");
           }
 
           wynikOcr.value = tekst;
-
           wynikOcrKontener.hidden = false;
-
           statusOcr.hidden = true;
         } catch (blad) {
           console.error("Błąd OCR:", blad);
-
+          const komunikat =
+            blad instanceof Error ? blad.message : "Nieznany błąd OCR.";
           statusOcr.hidden = false;
-
-          statusOcr.textContent = "❌ Nie udało się rozpoznać tekstu.";
-
-          alert("Nie udało się rozpoznać tekstu. Spróbuj ponownie.");
+          statusOcr.classList.add("status-ocr-blad");
+          statusOcr.textContent = `Nie udało się rozpoznać tekstu. ${komunikat}`;
         } finally {
           przyciskOcr.disabled = false;
         }
       });
-
       wstawTekstOcr.addEventListener("click", () => {
         const tekst = wynikOcr.value.trim();
 
@@ -468,6 +621,21 @@ const przedmioty = [
       const podgladData = document.querySelector("#podglad-data");
 
       const podgladTresc = document.querySelector("#podglad-tresc");
+
+      const wyczyscTrescNotatki = document.querySelector(
+        "#wyczysc-tresc-notatki",
+      );
+
+      wyczyscTrescNotatki.addEventListener("click", () => {
+        if (!tresc.value || !confirm("Czy na pewno usunąć treść notatki?")) {
+          return;
+        }
+
+        tresc.value = "";
+        podglad.hidden = true;
+        podgladTresc.textContent = "";
+        tresc.focus();
+      });
 
       przyciskPodgladu.addEventListener("click", () => {
         if (!podglad.hidden) {
@@ -524,23 +692,20 @@ const przedmioty = [
         }
 
         try {
-          const odpowiedz = await fetch(
-            "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008workers.dev/ocr",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                tytul,
-                przedmiot,
-                temat,
-                data,
-                tresc,
-                kodPublikacji,
-              }),
+          const odpowiedz = await fetch(`${workerUrl}/publish`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              tytul,
+              przedmiot,
+              temat,
+              data,
+              tresc,
+              kodPublikacji,
+            }),
+          });
 
           const wynik = await odpowiedz.json();
 
@@ -563,7 +728,15 @@ const przedmioty = [
 
           wynikOcrKontener.hidden = true;
 
+          if (adresObrazu) {
+            URL.revokeObjectURL(adresObrazu);
+            adresObrazu = null;
+          }
+
           podgladObrazu.src = "";
+          nazwaObrazu.textContent = "Nie wybrano zdjęcia";
+
+          statusObrazu.hidden = true;
 
           wynikOcr.value = "";
 

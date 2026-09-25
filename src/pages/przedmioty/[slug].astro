@@ -1,56 +1,29 @@
 ---
 import { getCollection } from "astro:content";
+import { przedmioty, grupyTytulow } from "../../lib/catalog";
 import "../../styles/global.css";
 
 export function getStaticPaths() {
-  const przedmioty = {
-    "pracownia-urzadzen-sieciowych": "Pracownia urządzeń sieciowych",
-    "pracownia-urzadzen-techniki-komputerowej":
-      "Pracownia urządzeń techniki komputerowej",
-    "projektowanie-i-administrowanie-bazami-danych":
-      "Projektowanie i administrowanie bazami danych",
-    "jezyk-angielski": "Język angielski",
-    matematyka: "Matematyka",
-    fizyka: "Fizyka",
-    "jezyk-niemiecki": "Język niemiecki",
-    "edukacja-obywatelska": "Edukacja obywatelska",
-    geografia: "Geografia",
-    "programowanie-i-obsluga-drukarek-3d":
-      "Programowanie i obsługa drukarek 3D",
-    "jezyk-polski": "Język polski",
-    chemia: "Chemia",
-    historia: "Historia",
-  };
-
-  return Object.entries(przedmioty).map(([slug, nazwa]) => ({
+  return przedmioty.map(({ slug, nazwa }) => ({
     params: { slug },
-    props: { nazwa },
+    props: { slug, nazwa },
   }));
 }
 
-const { nazwa } = Astro.props;
+const { slug, nazwa } = Astro.props;
 const notatki = await getCollection("notatki");
-
-const notatkiPrzedmiotu = notatki
-  .filter((notatka) => notatka.data.przedmiot === nazwa)
-  .sort((a, b) => {
-    const temat = a.data.temat.localeCompare(b.data.temat, "pl", {
-      sensitivity: "base",
-    });
-
-    if (temat !== 0) {
-      return temat;
-    }
-
-    return b.data.data.getTime() - a.data.data.getTime();
-  });
+const grupy = grupyTytulow(notatki, nazwa);
+const liczbaNotatek = grupy.reduce(
+  (suma, grupa) => suma + grupa.notatki.length,
+  0,
+);
 ---
 
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>{nazwa} — Notatki</title>
+    <title>{nazwa} — E-Notatki</title>
   </head>
 
   <body>
@@ -61,26 +34,24 @@ const notatkiPrzedmiotu = notatki
             ← Powrót do strony głównej
           </a>
         </p>
-
         <h1>{nazwa}</h1>
-
         <p class="liczba-notatek">
-          {notatkiPrzedmiotu.length}{" "}
-          {notatkiPrzedmiotu.length === 1 ? "notatka" : "notatek"}
+          {liczbaNotatek} {liczbaNotatek === 1 ? "notatka" : "notatek"} w{" "}
+          {grupy.length} {grupy.length === 1 ? "tytule" : "tytułach"}
         </p>
 
-        <h2>Notatki</h2>
-
-        {notatkiPrzedmiotu.length > 0 ? (
-          <div class="notes-list">
-            {notatkiPrzedmiotu.map((notatka) => (
-              <a class="note-card" href={`/Conspect/notatki/${notatka.id}/`}>
-                <strong>{notatka.data.tytul}</strong>
-
-                <span class="note-topic">{notatka.data.temat}</span>
-
-                <span class="note-date">
-                  {notatka.data.data.toLocaleDateString("pl-PL")}
+        <h2>Tytuły notatek</h2>
+        {grupy.length > 0 ? (
+          <div class="subjects">
+            {grupy.map((grupa) => (
+              <a
+                class="subject-card"
+                href={`/Conspect/przedmioty/${slug}/${grupa.slug}/`}
+              >
+                <strong>{grupa.tytul}</strong>
+                <span class="note-topic">
+                  {grupa.notatki.length}{" "}
+                  {grupa.notatki.length === 1 ? "notatka" : "notatek"}
                 </span>
               </a>
             ))}

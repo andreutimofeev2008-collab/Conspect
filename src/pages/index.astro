@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import { przedmioty } from "../lib/catalog";
 
 const notatki = await getCollection("notatki");
 
@@ -8,60 +9,6 @@ const ostatnieNotatki = notatki
   .sort((a, b) => b.data.data.getTime() - a.data.data.getTime())
   .slice(0, 5);
 
-const przedmioty = [
-  {
-    slug: "pracownia-urzadzen-sieciowych",
-    nazwa: "Pracownia urządzeń sieciowych",
-  },
-  {
-    slug: "pracownia-urzadzen-techniki-komputerowej",
-    nazwa: "Pracownia urządzeń techniki komputerowej",
-  },
-  {
-    slug: "projektowanie-i-administrowanie-bazami-danych",
-    nazwa: "Projektowanie i administrowanie bazami danych",
-  },
-  {
-    slug: "jezyk-angielski",
-    nazwa: "Język angielski",
-  },
-  {
-    slug: "matematyka",
-    nazwa: "Matematyka",
-  },
-  {
-    slug: "fizyka",
-    nazwa: "Fizyka",
-  },
-  {
-    slug: "jezyk-niemiecki",
-    nazwa: "Język niemiecki",
-  },
-  {
-    slug: "edukacja-obywatelska",
-    nazwa: "Edukacja obywatelska",
-  },
-  {
-    slug: "geografia",
-    nazwa: "Geografia",
-  },
-  {
-    slug: "programowanie-i-obsluga-drukarek-3d",
-    nazwa: "Programowanie i obsługa drukarek 3D",
-  },
-  {
-    slug: "jezyk-polski",
-    nazwa: "Język polski",
-  },
-  {
-    slug: "chemia",
-    nazwa: "Chemia",
-  },
-  {
-    slug: "historia",
-    nazwa: "Historia",
-  },
-];
 ---
 
 <Layout title="E-Notatki">

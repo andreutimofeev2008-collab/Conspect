@@ -1,0 +1,35 @@
+[
+  {
+    "slug": "pracownia-urzadzen-sieciowych",
+    "nazwa": "Pracownia urządzeń sieciowych",
+    "active": true
+  },
+  {
+    "slug": "pracownia-urzadzen-techniki-komputerowej",
+    "nazwa": "Pracownia urządzeń techniki komputerowej",
+    "active": true
+  },
+  {
+    "slug": "projektowanie-i-administrowanie-bazami-danych",
+    "nazwa": "Projektowanie i administrowanie bazami danych",
+    "active": true
+  },
+  { "slug": "jezyk-angielski", "nazwa": "Język angielski", "active": true },
+  { "slug": "matematyka", "nazwa": "Matematyka", "active": true },
+  { "slug": "fizyka", "nazwa": "Fizyka", "active": true },
+  { "slug": "jezyk-niemiecki", "nazwa": "Język niemiecki", "active": true },
+  {
+    "slug": "edukacja-obywatelska",
+    "nazwa": "Edukacja obywatelska",
+    "active": true
+  },
+  { "slug": "geografia", "nazwa": "Geografia", "active": true },
+  {
+    "slug": "programowanie-i-obsluga-drukarek-3d",
+    "nazwa": "Programowanie i obsługa drukarek 3D",
+    "active": true
+  },
+  { "slug": "jezyk-polski", "nazwa": "Język polski", "active": true },
+  { "slug": "chemia", "nazwa": "Chemia", "active": true },
+  { "slug": "historia", "nazwa": "Historia", "active": true }
+]

@@ -1,30 +1,15 @@
-export const przedmioty = [
-  {
-    slug: "pracownia-urzadzen-sieciowych",
-    nazwa: "Pracownia urządzeń sieciowych",
-  },
-  {
-    slug: "pracownia-urzadzen-techniki-komputerowej",
-    nazwa: "Pracownia urządzeń techniki komputerowej",
-  },
-  {
-    slug: "projektowanie-i-administrowanie-bazami-danych",
-    nazwa: "Projektowanie i administrowanie bazami danych",
-  },
-  { slug: "jezyk-angielski", nazwa: "Język angielski" },
-  { slug: "matematyka", nazwa: "Matematyka" },
-  { slug: "fizyka", nazwa: "Fizyka" },
-  { slug: "jezyk-niemiecki", nazwa: "Język niemiecki" },
-  { slug: "edukacja-obywatelska", nazwa: "Edukacja obywatelska" },
-  { slug: "geografia", nazwa: "Geografia" },
-  {
-    slug: "programowanie-i-obsluga-drukarek-3d",
-    nazwa: "Programowanie i obsługa drukarek 3D",
-  },
-  { slug: "jezyk-polski", nazwa: "Język polski" },
-  { slug: "chemia", nazwa: "Chemia" },
-  { slug: "historia", nazwa: "Historia" },
-] as const;
+import listaPrzedmiotow from "../data/przedmioty.json";
+
+export interface Przedmiot {
+  slug: string;
+  nazwa: string;
+  active: boolean;
+}
+
+export const wszystkiePrzedmioty = listaPrzedmiotow as Przedmiot[];
+export const przedmioty = wszystkiePrzedmioty.filter(
+  (przedmiot) => przedmiot.active,
+);
 
 export function normalizeTitle(title: string): string {
   return title
@@ -47,7 +32,7 @@ export function slugify(value: string): string {
 
 export function przedmiotSlug(nazwa: string): string {
   return (
-    przedmioty.find((przedmiot) => przedmiot.nazwa === nazwa)?.slug ??
+    wszystkiePrzedmioty.find((przedmiot) => przedmiot.nazwa === nazwa)?.slug ??
     slugify(nazwa)
   );
 }

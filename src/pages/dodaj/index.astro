@@ -1,21 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-
-const przedmioty = [
-  "Pracownia urządzeń sieciowych",
-  "Pracownia urządzeń techniki komputerowej",
-  "Projektowanie i administrowanie bazami danych",
-  "Język angielski",
-  "Matematyka",
-  "Fizyka",
-  "Język niemiecki",
-  "Edukacja obywatelska",
-  "Geografia",
-  "Programowanie i obsługa drukarek 3D",
-  "Język polski",
-  "Chemia",
-  "Historia",
-];
+import { przedmioty } from "../../lib/catalog";
 ---
 
 <Layout title="Dodaj notatkę — E-Notatki">
@@ -60,7 +45,7 @@ const przedmioty = [
             <option value="">Wybierz przedmiot</option>
 
             {przedmioty.map((przedmiot) => (
-              <option value={przedmiot}>{przedmiot}</option>
+              <option value={przedmiot.nazwa}>{przedmiot.nazwa}</option>
             ))}
           </select>
         </p>

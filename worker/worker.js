@@ -52,6 +52,12 @@ function base64Encode(tekst) {
   return btoa(binarny);
 }
 
+function base64Decode(tekst) {
+  const binarny = atob(tekst.replace(/\s/g, ""));
+  const bajty = Uint8Array.from(binarny, (znak) => znak.charCodeAt(0));
+  return new TextDecoder().decode(bajty);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -493,6 +499,235 @@ ${tresc}
             success: true,
             message: "Notatka została usunięta z gałęzi main.",
             path: plikDoUsuniecia.sciezka,
+          },
+          200,
+          request,
+        );
+      }
+
+      /*
+       * ============================
+       * ZARZĄDZANIE PRZEDMIOTAMI
+       * ============================
+       */
+
+      if (url.pathname === "/subjects") {
+        if (!env.GITHUB_TOKEN) {
+          return odpowiedz(
+            { error: "Brak sekretu GITHUB_TOKEN." },
+            500,
+            request,
+          );
+        }
+
+        if (!env.PUBLISH_SECRET) {
+          return odpowiedz(
+            { error: "Brak sekretu PUBLISH_SECRET." },
+            500,
+            request,
+          );
+        }
+
+        const { action, name, slug, kodPublikacji } = await request.json();
+
+        if (kodPublikacji !== env.PUBLISH_SECRET) {
+          return odpowiedz(
+            { error: "Nieprawidłowy kod publikacji." },
+            401,
+            request,
+          );
+        }
+
+        if (!["add", "archive", "restore"].includes(action)) {
+          return odpowiedz(
+            { error: "Nieprawidłowa operacja na przedmiocie." },
+            400,
+            request,
+          );
+        }
+
+        const nazwa =
+          typeof name === "string"
+            ? name.normalize("NFC").trim().replace(/\s+/g, " ")
+            : "";
+
+        if (action === "add" && (!nazwa || nazwa.length > 80)) {
+          return odpowiedz(
+            { error: "Podaj nazwę przedmiotu o długości do 80 znaków." },
+            400,
+            request,
+          );
+        }
+
+        if (
+          action !== "add" &&
+          (typeof slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug))
+        ) {
+          return odpowiedz(
+            { error: "Nieprawidłowy identyfikator przedmiotu." },
+            400,
+            request,
+          );
+        }
+
+        const headersGitHub = {
+          Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+          "User-Agent": "Conspect-Publisher",
+        };
+        const urlPrzedmiotow =
+          "https://api.github.com/repos/andreutimofeev2008-collab/Conspect/contents/src/data/przedmioty.json";
+        const odpowiedzPliku = await fetch(`${urlPrzedmiotow}?ref=main`, {
+          headers: headersGitHub,
+        });
+
+        if (!odpowiedzPliku.ok) {
+          const szczegoly = await odpowiedzPliku.json().catch(() => ({}));
+          return odpowiedz(
+            {
+              error: "Nie udało się pobrać listy przedmiotów z GitHuba.",
+              details: szczegoly,
+            },
+            502,
+            request,
+          );
+        }
+
+        const plikPrzedmiotow = await odpowiedzPliku.json();
+        let przedmioty;
+
+        try {
+          przedmioty = JSON.parse(base64Decode(plikPrzedmiotow.content));
+        } catch {
+          return odpowiedz(
+            { error: "Plik listy przedmiotów ma nieprawidłowy format." },
+            500,
+            request,
+          );
+        }
+
+        if (!Array.isArray(przedmioty)) {
+          return odpowiedz(
+            { error: "Plik listy przedmiotów ma nieprawidłowy format." },
+            500,
+            request,
+          );
+        }
+
+        let zmienionyPrzedmiot;
+        let komunikat;
+
+        if (action === "add") {
+          const znormalizowanaNazwa = nazwa.toLocaleLowerCase("pl-PL");
+          const istniejacy = przedmioty.find(
+            (przedmiot) =>
+              przedmiot.nazwa?.trim().replace(/\s+/g, " ").toLocaleLowerCase("pl-PL") ===
+              znormalizowanaNazwa,
+          );
+
+          if (istniejacy) {
+            return odpowiedz(
+              {
+                error: istniejacy.active
+                  ? "Przedmiot o tej nazwie już istnieje."
+                  : "Ten przedmiot jest już ukryty. Możesz go przywrócić z listy.",
+              },
+              409,
+              request,
+            );
+          }
+
+          const nowySlug = slugify(nazwa);
+
+          if (!nowySlug) {
+            return odpowiedz(
+              { error: "Nie można utworzyć adresu dla tej nazwy przedmiotu." },
+              400,
+              request,
+            );
+          }
+
+          if (przedmioty.some((przedmiot) => przedmiot.slug === nowySlug)) {
+            return odpowiedz(
+              {
+                error: "Podobny adres przedmiotu już istnieje. Użyj innej nazwy.",
+              },
+              409,
+              request,
+            );
+          }
+
+          zmienionyPrzedmiot = { slug: nowySlug, nazwa, active: true };
+          przedmioty.push(zmienionyPrzedmiot);
+          komunikat = "Przedmiot został dodany do katalogu.";
+        } else {
+          zmienionyPrzedmiot = przedmioty.find(
+            (przedmiot) => przedmiot.slug === slug,
+          );
+
+          if (!zmienionyPrzedmiot) {
+            return odpowiedz(
+              { error: "Nie znaleziono tego przedmiotu." },
+              404,
+              request,
+            );
+          }
+
+          const aktywny = action === "restore";
+
+          if (zmienionyPrzedmiot.active === aktywny) {
+            return odpowiedz(
+              {
+                error: aktywny
+                  ? "Ten przedmiot jest już widoczny w katalogu."
+                  : "Ten przedmiot jest już ukryty.",
+              },
+              409,
+              request,
+            );
+          }
+
+          zmienionyPrzedmiot.active = aktywny;
+          komunikat = aktywny
+            ? "Przedmiot został przywrócony do katalogu."
+            : "Przedmiot został ukryty w katalogu. Opublikowane notatki nie zostały usunięte.";
+        }
+
+        const odpowiedzAktualizacji = await fetch(urlPrzedmiotow, {
+          method: "PUT",
+          headers: headersGitHub,
+          body: JSON.stringify({
+            message: `Zarządzanie przedmiotem: ${zmienionyPrzedmiot.nazwa}`,
+            content: base64Encode(`${JSON.stringify(przedmioty, null, 2)}\n`),
+            sha: plikPrzedmiotow.sha,
+            branch: "main",
+          }),
+        });
+        const wynikAktualizacji = await odpowiedzAktualizacji
+          .json()
+          .catch(() => ({}));
+
+        if (!odpowiedzAktualizacji.ok) {
+          return odpowiedz(
+            {
+              error:
+                odpowiedzAktualizacji.status === 409
+                  ? "Lista przedmiotów zmieniła się w tym samym czasie. Odśwież stronę i spróbuj ponownie."
+                  : "GitHub nie pozwolił zaktualizować listy przedmiotów.",
+              details: wynikAktualizacji,
+            },
+            odpowiedzAktualizacji.status === 409 ? 409 : 502,
+            request,
+          );
+        }
+
+        return odpowiedz(
+          {
+            success: true,
+            message: komunikat,
+            subject: zmienionyPrzedmiot,
           },
           200,
           request,

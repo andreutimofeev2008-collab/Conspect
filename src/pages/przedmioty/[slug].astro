@@ -1,16 +1,16 @@
 ---
 import { getCollection } from "astro:content";
-import { przedmioty, grupyTytulow } from "../../lib/catalog";
+import { wszystkiePrzedmioty, grupyTytulow } from "../../lib/catalog";
 import Layout from "../../layouts/Layout.astro";
 
 export function getStaticPaths() {
-  return przedmioty.map(({ slug, nazwa }) => ({
+  return wszystkiePrzedmioty.map(({ slug, nazwa, active }) => ({
     params: { slug },
-    props: { slug, nazwa },
+    props: { slug, nazwa, active },
   }));
 }
 
-const { slug, nazwa } = Astro.props;
+const { slug, nazwa, active } = Astro.props;
 const notatki = await getCollection("notatki");
 const grupy = grupyTytulow(notatki, nazwa);
 const liczbaNotatek = grupy.reduce(
@@ -28,6 +28,11 @@ const liczbaNotatek = grupy.reduce(
           </a>
         </p>
         <h1>{nazwa}</h1>
+        {!active && (
+          <p class="notice-archiwum">
+            Ten przedmiot jest ukryty w katalogu. Opublikowane notatki pozostają dostępne.
+          </p>
+        )}
         <p class="liczba-notatek">
           {liczbaNotatek} {liczbaNotatek === 1 ? "notatka" : "notatek"} w{" "}
           {grupy.length} {grupy.length === 1 ? "tytule" : "tytułach"}

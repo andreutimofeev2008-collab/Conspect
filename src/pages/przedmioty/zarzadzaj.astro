@@ -1,0 +1,210 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import { normalizeTitle, wszystkiePrzedmioty } from "../../lib/catalog";
+
+const notatki = await getCollection("notatki");
+const liczbaNotatek = new Map<string, number>();
+
+for (const notatka of notatki) {
+  const klucz = normalizeTitle(notatka.data.przedmiot);
+  liczbaNotatek.set(klucz, (liczbaNotatek.get(klucz) ?? 0) + 1);
+}
+
+const przedmioty = [...wszystkiePrzedmioty]
+  .map((przedmiot) => ({
+    ...przedmiot,
+    liczbaNotatek: liczbaNotatek.get(normalizeTitle(przedmiot.nazwa)) ?? 0,
+  }))
+  .sort(
+    (a, b) =>
+      Number(b.active) - Number(a.active) ||
+      a.nazwa.localeCompare(b.nazwa, "pl", { sensitivity: "base" }),
+  );
+
+function opisLiczbyNotatek(liczba: number) {
+  if (liczba === 1) return "1 opublikowana notatka";
+  if (liczba >= 2 && liczba <= 4) return `${liczba} opublikowane notatki`;
+  return `${liczba} opublikowanych notatek`;
+}
+---
+
+<Layout title="Zarządzanie przedmiotami — E-Notatki">
+  <main class="page-shell">
+    <section class="strona-przedmiotu subject-manager">
+      <p>
+        <a class="link-powrot" href="/Conspect/">← Powrót do katalogu</a>
+      </p>
+      <p class="section-kicker">Ustawienia katalogu</p>
+      <h1>Zarządzanie przedmiotami</h1>
+      <p class="subject-manager-intro">
+        Dodaj przedmiot albo ukryj go z katalogu. Ukrycie nie usuwa opublikowanych
+        notatek — można przywrócić przedmiot w dowolnym momencie.
+      </p>
+
+      <form id="formularz-dodawania-przedmiotu" class="subject-manager-form">
+        <label for="nazwa-nowego-przedmiotu">Nazwa nowego przedmiotu</label>
+        <div class="subject-manager-form-row">
+          <input
+            id="nazwa-nowego-przedmiotu"
+            name="name"
+            type="text"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="Np. Biologia"
+            required
+          />
+          <button class="przycisk-glowny" type="submit">Dodaj przedmiot</button>
+        </div>
+      </form>
+
+      <p id="status-przedmiotow" class="status-przedmiotow" role="status" aria-live="polite" hidden></p>
+
+      <div class="section-heading subject-manager-heading">
+        <div>
+          <p class="section-kicker">Lista przedmiotów</p>
+          <h2>Widoczne i ukryte</h2>
+        </div>
+        <span class="section-count">{przedmioty.length} łącznie</span>
+      </div>
+
+      <div class="subject-admin-list">
+        {przedmioty.map((przedmiot) => (
+          <article class="subject-admin-card" data-subject={przedmiot.slug}>
+            <div class="subject-admin-info">
+              <strong>{przedmiot.nazwa}</strong>
+              <span>{opisLiczbyNotatek(przedmiot.liczbaNotatek)}</span>
+            </div>
+            <div class="subject-admin-actions">
+              <span class:list={["subject-state", { archived: !przedmiot.active }]}>
+                {przedmiot.active ? "Widoczny" : "Ukryty"}
+              </span>
+              <button
+                class:list={[
+                  "subject-action-button",
+                  { restore: !przedmiot.active },
+                ]}
+                type="button"
+                data-action={przedmiot.active ? "archive" : "restore"}
+                data-subject-slug={przedmiot.slug}
+              >
+                {przedmiot.active ? "Ukryj z katalogu" : "Przywróć"}
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const workerUrl =
+      "https://luckconspect-ocry-recipe-ce50.andreutimofeev2008.workers.dev";
+    const formularzPrzedmiotu = document.querySelector(
+      "#formularz-dodawania-przedmiotu",
+    );
+    const nazwaNowegoPrzedmiotu = document.querySelector(
+      "#nazwa-nowego-przedmiotu",
+    );
+    const statusPrzedmiotow = document.querySelector("#status-przedmiotow");
+
+    function pokazStatus(tekst, blad = false) {
+      statusPrzedmiotow.hidden = false;
+      statusPrzedmiotow.textContent = tekst;
+      statusPrzedmiotow.classList.toggle("error", blad);
+    }
+
+    async function zmienPrzedmioty(dane) {
+      const odpowiedz = await fetch(`${workerUrl}/subjects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dane),
+      });
+      const wynik = await odpowiedz.json().catch(() => ({}));
+
+      if (!odpowiedz.ok) {
+        throw new Error(wynik.error || `Serwer zwrócił błąd ${odpowiedz.status}.`);
+      }
+
+      return wynik;
+    }
+
+    formularzPrzedmiotu.addEventListener("submit", async (zdarzenie) => {
+      zdarzenie.preventDefault();
+
+      const name = nazwaNowegoPrzedmiotu.value.trim();
+      if (!name) return;
+
+      const kodPublikacji = prompt("Podaj aktualny kod publikacji:");
+      if (!kodPublikacji) return;
+
+      const przycisk = formularzPrzedmiotu.querySelector("button");
+      przycisk.disabled = true;
+      pokazStatus("Dodawanie przedmiotu…");
+
+      try {
+        const wynik = await zmienPrzedmioty({
+          action: "add",
+          name,
+          kodPublikacji,
+        });
+        pokazStatus(
+          `${wynik.message} Katalog opublikuje się po zakończeniu przebudowy strony.`,
+        );
+        formularzPrzedmiotu.reset();
+      } catch (blad) {
+        pokazStatus(
+          blad instanceof TypeError
+            ? "Nie udało się połączyć z serwerem. Sprawdź połączenie i spróbuj ponownie."
+            : blad.message || "Nie udało się dodać przedmiotu.",
+          true,
+        );
+      } finally {
+        przycisk.disabled = false;
+      }
+    });
+
+    document.querySelectorAll("[data-action]").forEach((przycisk) => {
+      przycisk.addEventListener("click", async () => {
+        const action = przycisk.dataset.action;
+        const slug = przycisk.dataset.subjectSlug;
+        const karta = przycisk.closest("[data-subject]");
+        const nazwa = karta.querySelector(".subject-admin-info strong").textContent;
+
+        if (
+          action === "archive" &&
+          !confirm(
+            `Ukryć przedmiot „${nazwa}” w katalogu? Opublikowane notatki pozostaną dostępne.`,
+          )
+        ) {
+          return;
+        }
+
+        const kodPublikacji = prompt("Podaj aktualny kod publikacji:");
+        if (!kodPublikacji) return;
+
+        przycisk.disabled = true;
+        pokazStatus(action === "archive" ? "Ukrywanie przedmiotu…" : "Przywracanie przedmiotu…");
+
+        try {
+          const wynik = await zmienPrzedmioty({
+            action,
+            slug,
+            kodPublikacji,
+          });
+          pokazStatus(
+            `${wynik.message} Katalog opublikuje się po zakończeniu przebudowy strony.`,
+          );
+        } catch (blad) {
+          pokazStatus(
+            blad instanceof TypeError
+              ? "Nie udało się połączyć z serwerem. Sprawdź połączenie i spróbuj ponownie."
+              : blad.message || "Nie udało się zmienić przedmiotu.",
+            true,
+          );
+          przycisk.disabled = false;
+        }
+      });
+    });
+  </script>
+</Layout>

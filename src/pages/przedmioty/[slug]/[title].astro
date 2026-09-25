@@ -1,12 +1,16 @@
 ---
 import { getCollection } from "astro:content";
-import { grupyTytulow, normalizeTitle, przedmioty } from "../../../lib/catalog";
+import {
+  grupyTytulow,
+  normalizeTitle,
+  wszystkiePrzedmioty,
+} from "../../../lib/catalog";
 import Layout from "../../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
   const notatki = await getCollection("notatki");
 
-  return przedmioty.flatMap(({ slug, nazwa }) =>
+  return wszystkiePrzedmioty.flatMap(({ slug, nazwa }) =>
     grupyTytulow(notatki, nazwa).map((grupa) => ({
       params: { slug, title: grupa.slug },
       props: { slug, nazwa, grupa },

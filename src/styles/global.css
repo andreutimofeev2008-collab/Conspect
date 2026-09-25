@@ -1293,3 +1293,171 @@ button,
     animation-duration: 0.01ms !important;
   }
 }
+
+/* Zarządzanie przedmiotami */
+
+.subject-manager-intro {
+  max-width: 760px;
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+
+.subject-manager-form {
+  display: grid;
+  gap: 8px;
+  margin: 24px 0 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.subject-manager-form label {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.subject-manager-form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.subject-manager-form-row input {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+
+.subject-manager-form-row .przycisk-glowny {
+  flex: 0 0 auto;
+}
+
+.subject-manager-heading {
+  margin-top: 34px;
+}
+
+.subject-admin-list {
+  display: grid;
+  gap: 10px;
+}
+
+.subject-admin-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 17px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.subject-admin-info {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.subject-admin-info strong {
+  overflow-wrap: anywhere;
+}
+
+.subject-admin-info span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.subject-admin-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.subject-state {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.subject-state.archived {
+  color: var(--muted);
+  background: var(--surface-muted);
+}
+
+.subject-action-button {
+  min-height: 40px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, var(--border));
+  border-radius: 9px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.subject-action-button.restore {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.subject-action-button:disabled,
+.subject-manager-form button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.status-przedmiotow {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--accent-soft);
+  overflow-wrap: anywhere;
+}
+
+.status-przedmiotow.error {
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.notice-archiwum {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--surface-muted);
+}
+
+@media (max-width: 600px) {
+  .subject-manager-form-row,
+  .subject-admin-card,
+  .subject-admin-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .subject-admin-actions {
+    align-items: flex-start;
+  }
+
+  .subject-manager-form-row .przycisk-glowny,
+  .subject-action-button {
+    width: 100%;
+  }
+}

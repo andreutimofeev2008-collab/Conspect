@@ -226,6 +226,24 @@ import { przedmioty } from "../../lib/catalog";
           ></p>
         </div>
 
+        <div id="kod-publikacji-kontener" hidden>
+          <p>
+            <label for="kod-publikacji">Kod dostępu do AI i publikacji</label>
+            <br />
+            <input
+              id="kod-publikacji"
+              type="password"
+              autocomplete="current-password"
+            />
+          </p>
+          <p
+            id="status-kodu-publikacji"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></p>
+        </div>
+
         <div class="przyciski-formatowania">
           <button id="przycisk-podgladu" class="przycisk-glowny" type="button">
             Podgląd
@@ -320,6 +338,16 @@ import { przedmioty } from "../../lib/catalog";
 
       const przywrocTekstOcr = document.querySelector("#przywroc-tekst-ocr");
 
+      const kodPublikacjiKontener = document.querySelector(
+        "#kod-publikacji-kontener",
+      );
+
+      const kodPublikacjiInput = document.querySelector("#kod-publikacji");
+
+      const statusKoduPublikacji = document.querySelector(
+        "#status-kodu-publikacji",
+      );
+
       let tekstOcrDoPrzywrocenia = null;
 
       let tekstPoAiOcr = null;
@@ -328,9 +356,39 @@ import { przedmioty } from "../../lib/catalog";
 
       let kodPublikacjiAi = null;
 
+      let akcjaPoKodzie = null;
+
       let plikOcrDlaAi = null;
 
       let jezykOcrDlaAi = "pol";
+
+      function pokazPoleKoduPublikacji(akcja) {
+        akcjaPoKodzie = akcja;
+        kodPublikacjiKontener.hidden = false;
+        statusKoduPublikacji.textContent =
+          akcja === "ai"
+            ? "Wpisz kod, a następnie ponownie kliknij „Popraw tekst przez AI”."
+            : "Wpisz kod, a następnie ponownie kliknij „Opublikuj notatkę”.";
+        statusKoduPublikacji.hidden = false;
+        kodPublikacjiInput.focus();
+      }
+
+      function ukryjPoleKoduPublikacji() {
+        akcjaPoKodzie = null;
+        kodPublikacjiKontener.hidden = true;
+        statusKoduPublikacji.hidden = true;
+      }
+
+      kodPublikacjiInput.addEventListener("keydown", (zdarzenie) => {
+        if (zdarzenie.key !== "Enter") return;
+        zdarzenie.preventDefault();
+
+        if (akcjaPoKodzie === "ai") {
+          przyciskAiOcr.click();
+        } else if (akcjaPoKodzie === "publikacja") {
+          formularz.requestSubmit();
+        }
+      });
 
       const przyciskPogrubienie = document.querySelector(
         "#przycisk-pogrubienie",
@@ -771,10 +829,14 @@ import { przedmioty } from "../../lib/catalog";
 
         let kodDoPoprawy = kodPublikacjiAi;
         if (!kodDoPoprawy) {
-          kodDoPoprawy = prompt(
-            "Podaj kod publikacji, aby uruchomić poprawę tekstu przez AI:",
-          );
-          if (!kodDoPoprawy) return;
+          kodDoPoprawy = kodPublikacjiInput.value.trim();
+        }
+        if (!kodDoPoprawy) {
+          pokazPoleKoduPublikacji("ai");
+          statusAiOcr.textContent =
+            "Wpisz kod dostępu w polu na dole formularza. Po zatwierdzeniu wrócisz tutaj i uruchomisz poprawę.";
+          statusAiOcr.hidden = false;
+          return;
         }
 
         statusAiOcr.hidden = false;
@@ -819,7 +881,12 @@ import { przedmioty } from "../../lib/catalog";
           }
 
           if (!odpowiedzAi.ok) {
-            if (odpowiedzAi.status === 401) kodPublikacjiAi = null;
+            if (odpowiedzAi.status === 401) {
+              kodPublikacjiAi = null;
+              kodPublikacjiInput.value = "";
+              pokazPoleKoduPublikacji("ai");
+              setTimeout(() => kodPublikacjiInput.focus(), 0);
+            }
 
             const szczegoly = wynikAi.details;
             const diagnostyka =
@@ -859,6 +926,8 @@ import { przedmioty } from "../../lib/catalog";
           tekstOcrDoPrzywrocenia = tekstOcrOryginalny;
           tekstPoAiOcr = poprawionyTekst;
           kodPublikacjiAi = kodDoPoprawy;
+          kodPublikacjiInput.value = "";
+          ukryjPoleKoduPublikacji();
           wynikOcr.value = poprawionyTekst;
           tresc.value = poprawionyTekst;
           wstawTekstOcr.textContent = "⬇️ Wstaw poprawiony tekst";
@@ -1004,11 +1073,16 @@ import { przedmioty } from "../../lib/catalog";
           return;
         }
 
-        const kodPublikacji = prompt("Podaj kod publikacji:");
+        const kodPublikacji =
+          kodPublikacjiAi || kodPublikacjiInput.value.trim();
 
         if (!kodPublikacji) {
+          pokazPoleKoduPublikacji("publikacja");
           return;
         }
+
+        statusKoduPublikacji.textContent = "Trwa publikowanie notatki…";
+        statusKoduPublikacji.hidden = false;
 
         try {
           const odpowiedz = await fetch(`${workerUrl}/publish`, {
@@ -1029,14 +1103,28 @@ import { przedmioty } from "../../lib/catalog";
           const wynik = await odpowiedz.json();
 
           if (!odpowiedz.ok) {
-            alert(wynik.error || "Nie udało się opublikować notatki.");
+            if (odpowiedz.status === 401) {
+              kodPublikacjiAi = null;
+              kodPublikacjiInput.value = "";
+              pokazPoleKoduPublikacji("publikacja");
+            }
+            statusKoduPublikacji.textContent =
+              wynik.error || "Nie udało się opublikować notatki.";
+            statusKoduPublikacji.hidden = false;
             return;
           }
 
-          alert("Notatka została opublikowana pomyślnie!");
+          kodPublikacjiAi = kodPublikacji;
+          kodPublikacjiInput.value = "";
+          akcjaPoKodzie = null;
+          statusKoduPublikacji.textContent =
+            "Notatka została opublikowana pomyślnie.";
+          statusKoduPublikacji.hidden = false;
         } catch (blad) {
           console.error(blad);
-          alert("Nie udało się połączyć z serwerem publikacji.");
+          statusKoduPublikacji.textContent =
+            "Nie udało się połączyć z serwerem publikacji.";
+          statusKoduPublikacji.hidden = false;
         }
       });
       formularz.addEventListener("reset", () => {
@@ -1064,6 +1152,8 @@ import { przedmioty } from "../../lib/catalog";
           tekstOcrOryginalny = null;
           plikOcrDlaAi = null;
           kodPublikacjiAi = null;
+          kodPublikacjiInput.value = "";
+          ukryjPoleKoduPublikacji();
           przywrocTekstOcr.hidden = true;
           wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
           przyciskAiOcr.hidden = true;

@@ -415,10 +415,22 @@ export default {
         }
 
         if (!odpowiedzAI.ok) {
+          const bladAI = wynikAI?.error ?? {};
+          const ograniczTekstBledu = (wartosc) =>
+            typeof wartosc === "string" ? wartosc.slice(0, 500) : undefined;
+
           return odpowiedz(
             {
               error: "OpenAI nie mogło poprawić rozpoznanego tekstu.",
               code: "AI_UPSTREAM_ERROR",
+              details: {
+                httpStatus: odpowiedzAI.status,
+                type: ograniczTekstBledu(bladAI.type),
+                code: ograniczTekstBledu(bladAI.code),
+                param: ograniczTekstBledu(bladAI.param),
+                message: ograniczTekstBledu(bladAI.message),
+                requestId: odpowiedzAI.headers.get("x-request-id") || undefined,
+              },
             },
             odpowiedzAI.status === 429 ? 503 : 502,
             request,

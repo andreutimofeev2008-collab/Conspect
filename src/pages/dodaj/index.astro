@@ -165,8 +165,8 @@ import { przedmioty } from "../../lib/catalog";
           </fieldset>
 
           <p class="opis">
-            Po rozpoznaniu zdjęcie i tekst zostaną automatycznie wysłane do OpenAI
-            w celu poprawy i formatowania.
+            OCR działa bez dodatkowego kodu. Zdjęcie i tekst wyślemy do OpenAI
+            dopiero po kliknięciu przycisku poprawy przez AI.
           </p>
 
           <div class="przyciski-formatowania">
@@ -190,10 +190,10 @@ import { przedmioty } from "../../lib/catalog";
         </div>
 
         <div id="wynik-ocr-kontener" class="sekcja-ocr" hidden>
-          <h3>Oryginalny tekst OCR</h3>
+          <h3>Tekst rozpoznany przez OCR</h3>
           <p class="opis">
-            Tutaj pozostaje wersja przed poprawą. Możesz ją wstawić samodzielnie
-            albo przywrócić po automatycznej poprawie.
+            Możesz wstawić rozpoznany tekst od razu albo poprosić AI o poprawę i
+            formatowanie. Przy poprawie zdjęcie oraz tekst zostaną wysłane do OpenAI.
           </p>
 
           <textarea
@@ -203,6 +203,9 @@ import { przedmioty } from "../../lib/catalog";
           ></textarea>
 
           <p>
+            <button id="przycisk-ai-ocr" type="button">
+              ✨ Popraw tekst przez AI
+            </button>
             <button
               id="wstaw-tekst-ocr"
               class="przycisk-wstaw-tekst"
@@ -214,6 +217,13 @@ import { przedmioty } from "../../lib/catalog";
               ↶ Przywróć oryginalny OCR
             </button>
           </p>
+          <p
+            id="status-ai-ocr"
+            class="status-ocr"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></p>
         </div>
 
         <div class="przyciski-formatowania">
@@ -298,6 +308,10 @@ import { przedmioty } from "../../lib/catalog";
 
       const statusOcr = document.querySelector("#status-ocr");
 
+      const przyciskAiOcr = document.querySelector("#przycisk-ai-ocr");
+
+      const statusAiOcr = document.querySelector("#status-ai-ocr");
+
       const wynikOcrKontener = document.querySelector("#wynik-ocr-kontener");
 
       const wynikOcr = document.querySelector("#wynik-ocr");
@@ -310,7 +324,13 @@ import { przedmioty } from "../../lib/catalog";
 
       let tekstPoAiOcr = null;
 
+      let tekstOcrOryginalny = null;
+
       let kodPublikacjiAi = null;
+
+      let plikOcrDlaAi = null;
+
+      let jezykOcrDlaAi = "pol";
 
       const przyciskPogrubienie = document.querySelector(
         "#przycisk-pogrubienie",
@@ -388,6 +408,11 @@ import { przedmioty } from "../../lib/catalog";
         wynikOcr.value = "";
         tekstOcrDoPrzywrocenia = null;
         tekstPoAiOcr = null;
+        tekstOcrOryginalny = null;
+        plikOcrDlaAi = null;
+        wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
+        przyciskAiOcr.hidden = true;
+        statusAiOcr.hidden = true;
         przywrocTekstOcr.hidden = true;
         statusObrazu.hidden = true;
       }
@@ -452,6 +477,11 @@ import { przedmioty } from "../../lib/catalog";
         wynikOcr.value = "";
         tekstOcrDoPrzywrocenia = null;
         tekstPoAiOcr = null;
+        tekstOcrOryginalny = null;
+        plikOcrDlaAi = null;
+        wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
+        przyciskAiOcr.hidden = true;
+        statusAiOcr.hidden = true;
         przywrocTekstOcr.hidden = true;
       });
 
@@ -604,28 +634,11 @@ import { przedmioty } from "../../lib/catalog";
           return;
         }
 
-        if (
-          tresc.value.trim() &&
-          !confirm(
-            "Rozpoznany i poprawiony tekst zastąpi całą obecną treść notatki. Kontynuować?",
-          )
-        ) {
-          return;
-        }
-
-        let kodDoPoprawy = kodPublikacjiAi;
-
-        if (!kodDoPoprawy) {
-          kodDoPoprawy = prompt(
-            "Podaj kod publikacji, aby uruchomić poprawę tekstu przez AI:",
-          );
-
-          if (!kodDoPoprawy) return;
-        }
-
         statusOcr.hidden = false;
         statusOcr.textContent = "Wysyłanie obrazu do rozpoznawania…";
         statusOcr.classList.remove("status-ocr-blad");
+        statusAiOcr.hidden = true;
+        przyciskAiOcr.hidden = true;
         formularz
           .querySelectorAll("input, select, textarea, button")
           .forEach((element) => (element.disabled = true));
@@ -633,6 +646,9 @@ import { przedmioty } from "../../lib/catalog";
         wynikOcr.value = "";
         tekstOcrDoPrzywrocenia = null;
         tekstPoAiOcr = null;
+        tekstOcrOryginalny = null;
+        plikOcrDlaAi = null;
+        wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
         przywrocTekstOcr.hidden = true;
 
         try {
@@ -651,7 +667,7 @@ import { przedmioty } from "../../lib/catalog";
 
           let odpowiedz;
           try {
-            odpowiedz = await fetch(`${workerUrl}/ocr`, {
+            odpowiedz = await fetch(workerUrl + "/ocr", {
               method: "POST",
               body: dane,
             });
@@ -671,7 +687,7 @@ import { przedmioty } from "../../lib/catalog";
             wynik = JSON.parse(tekstOdpowiedzi);
           } catch {
             throw new Error(
-              `Worker zwrócił nieprawidłową odpowiedź (HTTP ${odpowiedz.status}).`,
+              "Worker zwrócił nieprawidłową odpowiedź (HTTP " + odpowiedz.status + ").",
             );
           }
 
@@ -685,8 +701,8 @@ import { przedmioty } from "../../lib/catalog";
             throw new Error(
               [
                 wynik.error ||
-                  `Serwer OCR zwrócił błąd HTTP ${odpowiedz.status}.`,
-                szczegoly ? `Szczegóły: ${szczegoly}` : "",
+                  "Serwer OCR zwrócił błąd HTTP " + odpowiedz.status + ".",
+                szczegoly ? "Szczegóły: " + szczegoly : "",
               ]
                 .filter(Boolean)
                 .join(" "),
@@ -712,22 +728,73 @@ import { przedmioty } from "../../lib/catalog";
           }
 
           wynikOcr.value = tekst;
+          tekstOcrOryginalny = tekst;
+          plikOcrDlaAi = plikDoOcr;
+          jezykOcrDlaAi = jezyk;
           wynikOcrKontener.hidden = false;
+          przyciskAiOcr.hidden = false;
 
           statusOcr.textContent =
-            "OCR zakończony. Wysyłanie zdjęcia i tekstu do OpenAI w celu poprawy…";
+            "OCR zakończony. Możesz wstawić tekst albo poprawić go przez AI.";
+        } catch (blad) {
+          console.error("Błąd OCR:", blad);
+          const komunikat =
+            blad instanceof Error ? blad.message : "Nieznany błąd OCR.";
+          statusOcr.textContent = "Nie udało się rozpoznać tekstu. " + komunikat;
+          statusOcr.classList.add("status-ocr-blad");
+        } finally {
+          formularz
+            .querySelectorAll("input, select, textarea, button")
+            .forEach((element) => (element.disabled = false));
+        }
+      });
 
-          const plikDlaAi = await przygotujObrazDlaAi(plikDoOcr);
+      przyciskAiOcr.addEventListener("click", async () => {
+        if (!plikOcrDlaAi || !tekstOcrOryginalny) return;
+
+        const tekstDoPoprawy = wynikOcr.value.trim();
+        if (!tekstDoPoprawy) {
+          statusAiOcr.textContent = "Najpierw rozpoznaj tekst przez OCR.";
+          statusAiOcr.hidden = false;
+          statusAiOcr.classList.add("status-ocr-blad");
+          return;
+        }
+
+        if (
+          tresc.value.trim() &&
+          !confirm(
+            "Poprawiony tekst zastąpi całą obecną treść notatki. Kontynuować?",
+          )
+        ) {
+          return;
+        }
+
+        let kodDoPoprawy = kodPublikacjiAi;
+        if (!kodDoPoprawy) {
+          kodDoPoprawy = prompt(
+            "Podaj kod publikacji, aby uruchomić poprawę tekstu przez AI:",
+          );
+          if (!kodDoPoprawy) return;
+        }
+
+        statusAiOcr.hidden = false;
+        statusAiOcr.classList.remove("status-ocr-blad");
+        statusAiOcr.textContent = "Wysyłanie zdjęcia i tekstu do OpenAI…";
+        formularz
+          .querySelectorAll("input, select, textarea, button")
+          .forEach((element) => (element.disabled = true));
+
+        try {
+          const plikDlaAi = await przygotujObrazDlaAi(plikOcrDlaAi);
           const daneDoAi = new FormData();
           daneDoAi.append("file", plikDlaAi);
-          daneDoAi.append("text", tekst);
-          daneDoAi.append("language", jezyk);
+          daneDoAi.append("text", tekstDoPoprawy);
+          daneDoAi.append("language", jezykOcrDlaAi);
           daneDoAi.append("kodPublikacji", kodDoPoprawy);
 
           let odpowiedzAi;
-
           try {
-            odpowiedzAi = await fetch(`${workerUrl}/format-ocr`, {
+            odpowiedzAi = await fetch(workerUrl + "/format-ocr", {
               method: "POST",
               body: daneDoAi,
             });
@@ -745,16 +812,42 @@ import { przedmioty } from "../../lib/catalog";
             wynikAi = JSON.parse(tekstOdpowiedziAi);
           } catch {
             throw new Error(
-              `Worker zwrócił nieprawidłową odpowiedź AI (HTTP ${odpowiedzAi.status}).`,
+              "Worker zwrócił nieprawidłową odpowiedź AI (HTTP " +
+                odpowiedzAi.status +
+                ").",
             );
           }
 
           if (!odpowiedzAi.ok) {
             if (odpowiedzAi.status === 401) kodPublikacjiAi = null;
 
+            const szczegoly = wynikAi.details;
+            const diagnostyka =
+              szczegoly && typeof szczegoly === "object"
+                ? [
+                    szczegoly.httpStatus && "HTTP " + szczegoly.httpStatus,
+                    szczegoly.type,
+                    szczegoly.code,
+                    szczegoly.message,
+                    szczegoly.requestId &&
+                      "ID zapytania: " + szczegoly.requestId,
+                  ]
+                    .filter(Boolean)
+                    .join("; ")
+                : typeof szczegoly === "string"
+                  ? szczegoly
+                  : "";
+
             throw new Error(
-              wynikAi.error ||
-                `Usługa poprawy AI zwróciła błąd HTTP ${odpowiedzAi.status}.`,
+              [
+                wynikAi.error ||
+                  "Usługa poprawy AI zwróciła błąd HTTP " +
+                    odpowiedzAi.status +
+                    ".",
+                diagnostyka,
+              ]
+                .filter(Boolean)
+                .join(" "),
             );
           }
 
@@ -762,34 +855,38 @@ import { przedmioty } from "../../lib/catalog";
             throw new Error("AI nie zwróciło poprawionego tekstu.");
           }
 
-          tekstOcrDoPrzywrocenia = tekst;
-          tekstPoAiOcr = wynikAi.text.trim();
+          const poprawionyTekst = wynikAi.text.trim();
+          tekstOcrDoPrzywrocenia = tekstOcrOryginalny;
+          tekstPoAiOcr = poprawionyTekst;
           kodPublikacjiAi = kodDoPoprawy;
-          tresc.value = tekstPoAiOcr;
+          wynikOcr.value = poprawionyTekst;
+          tresc.value = poprawionyTekst;
+          wstawTekstOcr.textContent = "⬇️ Wstaw poprawiony tekst";
           przywrocTekstOcr.hidden = false;
-          statusOcr.hidden = false;
-          statusOcr.classList.remove("status-ocr-blad");
-          statusOcr.textContent =
-            "Tekst został poprawiony i wstawiony do notatki. Oryginalny OCR można przywrócić poniżej.";
+          statusAiOcr.textContent =
+            "Tekst poprawiony i wstawiony do notatki. Oryginalny OCR możesz przywrócić przyciskiem poniżej.";
         } catch (blad) {
-          console.error("Błąd OCR lub poprawy tekstu:", blad);
+          console.error("Błąd poprawy tekstu przez AI:", blad);
           const komunikat =
-            blad instanceof Error ? blad.message : "Nieznany błąd OCR.";
-          if (wynikOcr.value.trim()) {
-            tresc.value = wynikOcr.value.trim();
-            statusOcr.textContent = `Nie udało się poprawić tekstu przez AI. Do notatki wstawiono oryginalny OCR. ${komunikat}`;
-          } else {
-            statusOcr.textContent = `Nie udało się rozpoznać tekstu. ${komunikat}`;
-          }
-          statusOcr.hidden = false;
-          statusOcr.classList.add("status-ocr-blad");
+            blad instanceof Error
+              ? blad.message
+              : "Nieznany błąd poprawy AI.";
+          wynikOcr.value = tekstOcrOryginalny;
+          tresc.value = tekstOcrOryginalny;
+          tekstOcrDoPrzywrocenia = null;
+          tekstPoAiOcr = null;
+          wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
+          przywrocTekstOcr.hidden = true;
+          statusAiOcr.textContent =
+            "Nie udało się poprawić tekstu przez AI. Do notatki wstawiono tekst OCR. " +
+            komunikat;
+          statusAiOcr.classList.add("status-ocr-blad");
         } finally {
           formularz
             .querySelectorAll("input, select, textarea, button")
             .forEach((element) => (element.disabled = false));
         }
       });
-
       przywrocTekstOcr.addEventListener("click", () => {
         if (!tekstOcrDoPrzywrocenia) return;
 
@@ -803,7 +900,12 @@ import { przedmioty } from "../../lib/catalog";
         }
 
         tresc.value = tekstOcrDoPrzywrocenia;
+        wynikOcr.value = tekstOcrDoPrzywrocenia;
+        tekstOcrDoPrzywrocenia = null;
+        tekstPoAiOcr = null;
+        wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
         przywrocTekstOcr.hidden = true;
+        statusAiOcr.textContent = "Przywrócono oryginalny tekst OCR.";
         tresc.focus();
       });
       wstawTekstOcr.addEventListener("click", () => {
@@ -959,8 +1061,13 @@ import { przedmioty } from "../../lib/catalog";
 
           tekstOcrDoPrzywrocenia = null;
           tekstPoAiOcr = null;
+          tekstOcrOryginalny = null;
+          plikOcrDlaAi = null;
           kodPublikacjiAi = null;
           przywrocTekstOcr.hidden = true;
+          wstawTekstOcr.textContent = "⬇️ Wstaw rozpoznany tekst";
+          przyciskAiOcr.hidden = true;
+          statusAiOcr.hidden = true;
 
           statusOcr.hidden = true;
 

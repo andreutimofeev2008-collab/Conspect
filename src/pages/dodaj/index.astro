@@ -165,7 +165,7 @@ import { przedmioty } from "../../lib/catalog";
           </fieldset>
 
           <p class="opis">
-            OCR działa bez dodatkowego kodu. Zdjęcie i tekst wyślemy do OpenAI
+            OCR działa bez dodatkowego kodu. Zdjęcie i tekst wyślemy do Cloudflare Workers AI
             dopiero po kliknięciu przycisku poprawy przez AI.
           </p>
 
@@ -193,7 +193,7 @@ import { przedmioty } from "../../lib/catalog";
           <h3>Tekst rozpoznany przez OCR</h3>
           <p class="opis">
             Możesz wstawić rozpoznany tekst od razu albo poprosić AI o poprawę i
-            formatowanie. Przy poprawie zdjęcie oraz tekst zostaną wysłane do OpenAI.
+            formatowanie. Przy poprawie zdjęcie oraz tekst zostaną wysłane do Cloudflare Workers AI.
           </p>
 
           <textarea
@@ -841,7 +841,8 @@ import { przedmioty } from "../../lib/catalog";
 
         statusAiOcr.hidden = false;
         statusAiOcr.classList.remove("status-ocr-blad");
-        statusAiOcr.textContent = "Wysyłanie zdjęcia i tekstu do OpenAI…";
+        statusAiOcr.textContent =
+          "Wysyłanie zdjęcia i tekstu do Cloudflare Workers AI…";
         formularz
           .querySelectorAll("input, select, textarea, button")
           .forEach((element) => (element.disabled = true));
